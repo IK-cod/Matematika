@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Часови по математика</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <style>
     :root {
       --bg: #f7f7fb;
@@ -470,6 +471,111 @@
       border: 1px solid rgba(0,0,0,0.05);
     }
 
+    .qr-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      min-width: 102px;
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 18px;
+      background: rgba(230, 241, 235, 0.95);
+      color: #5f8b72;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .qr-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 18px rgba(31, 41, 55, 0.08);
+    }
+
+    .qr-btn.disabled {
+      background: rgba(233, 237, 242, 0.8);
+      color: #8a94a3;
+      pointer-events: none;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .qr-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 16px;
+    }
+
+    .qr-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .qr-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(39, 48, 67, 0.28);
+      z-index: 20;
+    }
+
+    .qr-modal.show {
+      display: flex;
+    }
+
+    .qr-modal-card {
+      width: min(92vw, 420px);
+      background: rgba(255,255,255,0.96);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 18px 40px rgba(31, 41, 55, 0.16);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .qr-modal-card h3 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+
+    .qr-modal-card p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.55;
+      word-break: break-word;
+    }
+
+    .qr-canvas-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
+      margin-bottom: 16px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(247,249,255,0.88), rgba(255,255,255,0.92));
+      border: 1px solid var(--line);
+      padding: 18px;
+    }
+
+    .qr-modal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .link-btn.disabled {
       background: rgba(233, 237, 242, 0.8);
       color: #8a94a3;
@@ -536,6 +642,21 @@
   </style>
 </head>
 <body>
+  <div class="qr-modal" id="qrModal">
+    <div class="qr-modal-card">
+      <h3>QR код</h3>
+      <p id="qrModalTitle">Скенирај го кодот од мобилен.</p>
+      <div class="qr-canvas-wrap">
+        <canvas id="qrCanvas"></canvas>
+        <img id="qrImage" alt="QR код" style="display:none; width:220px; height:220px; max-width:100%;" />
+      </div>
+      <div class="qr-modal-actions">
+        <a class="link-btn" id="qrOpenLink" href="#" target="_blank" rel="noopener noreferrer">Отвори линк</a>
+        <button class="action-btn" id="qrCloseBtn">Затвори</button>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
     <section class="hero">
       <h1>Часови по математика</h1>
@@ -725,6 +846,12 @@
     const categoryGrid = document.getElementById('categoryGrid');
     const gradeRow = document.getElementById('gradeRow');
     const contentArea = document.getElementById('contentArea');
+    const qrModal = document.getElementById('qrModal');
+    const qrCanvas = document.getElementById('qrCanvas');
+    const qrImage = document.getElementById('qrImage');
+    const qrModalTitle = document.getElementById('qrModalTitle');
+    const qrOpenLink = document.getElementById('qrOpenLink');
+    const qrCloseBtn = document.getElementById('qrCloseBtn');
     const searchInput = document.getElementById('searchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
     const excelFileInput = document.getElementById('excelFileInput');
@@ -947,6 +1074,11 @@
               ? `<a class="link-btn" href="${item.link}" target="_blank" rel="noopener noreferrer">Отвори</a>`
               : `<span class="link-btn disabled">Нема линк</span>`}
           </td>
+          <td>
+            ${item.link
+              ? `<button class="qr-btn" onclick="openQrModal('${encodeURIComponent(item.link)}')"><span class="qr-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4z"></path><path d="M14 4h6v6h-6z"></path><path d="M4 14h6v6H4z"></path><path d="M14 14h2"></path><path d="M18 14h2v2"></path><path d="M14 18h2v2"></path><path d="M18 18h2"></path></svg></span>QR код</button>`
+              : `<span class="qr-btn disabled">Нема QR</span>`}
+          </td>
         </tr>
       `).join('');
 
@@ -958,12 +1090,58 @@
                 <th>РЕДЕН БРОЈ</th>
                 <th>Наслов на содржината</th>
                 <th>Линк</th>
+                <th>QR КОД</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
       `;
+    }
+
+    function showQrFallbackImage(link) {
+      qrCanvas.style.display = 'none';
+      qrImage.style.display = 'block';
+      qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}`;
+    }
+
+    async function openQrModal(link) {
+      if (!link) return;
+      link = decodeURIComponent(link);
+
+      qrOpenLink.href = link;
+      qrModalTitle.textContent = 'Скенирај го QR кодот од мобилен за полесно отворање на линкот.';
+      qrModal.classList.add('show');
+      qrImage.style.display = 'none';
+      qrImage.removeAttribute('src');
+      qrCanvas.style.display = 'block';
+
+      try {
+        if (typeof QRCode === 'undefined' || typeof QRCode.toCanvas !== 'function') {
+          showQrFallbackImage(link);
+          return;
+        }
+
+        await QRCode.toCanvas(qrCanvas, link, {
+          width: 220,
+          margin: 2,
+          color: {
+            dark: '#304051',
+            light: '#ffffff'
+          }
+        });
+      } catch (error) {
+        showQrFallbackImage(link);
+      }
+    }
+
+    function closeQrModal() {
+      qrModal.classList.remove('show');
+      const ctx = qrCanvas.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+      qrImage.style.display = 'none';
+      qrImage.removeAttribute('src');
+      qrCanvas.style.display = 'block';
     }
 
     function selectCategory(categoryKey) {
@@ -985,6 +1163,11 @@
       renderTable();
     });
 
+    qrCloseBtn.addEventListener('click', closeQrModal);
+    qrModal.addEventListener('click', (event) => {
+      if (event.target === qrModal) closeQrModal();
+    });
+
     excelFileInput.addEventListener('change', async (event) => {
       const file = event.target.files?.[0];
       await loadExcelFromSelectedFile(file);
@@ -998,6 +1181,7 @@
 
     window.selectCategory = selectCategory;
     window.selectGrade = selectGrade;
+    window.openQrModal = openQrModal;
   </script>
 </body>
 </html>
