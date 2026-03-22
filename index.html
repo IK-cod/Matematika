@@ -300,11 +300,34 @@
     .search-wrap {
       flex: 1;
       min-width: 240px;
+      position: relative;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: #8fb7de;
+      pointer-events: none;
+    }
+
+    .search-icon svg,
+    .btn-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .search-wrap input {
       width: 100%;
-      padding: 14px 16px;
+      padding: 14px 16px 14px 42px;
       border-radius: 16px;
       border: 1px solid var(--line);
       font-size: 15px;
@@ -318,10 +341,40 @@
     }
 
     .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       background: rgba(255,255,255,0.82);
       border: 1px solid var(--line);
       color: var(--text);
       padding: 13px 16px;
+    }
+
+    .upload-btn {
+      color: #86b59a;
+      font-weight: 700;
+    }
+
+    .btn-icon {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 18px;
+    }
+
+    .btn-icon.search-tone {
+      color: #8fb7de;
+    }
+
+    .btn-icon.trash-tone {
+      color: #d9a1a1;
+    }
+
+    .hidden-file-input {
+      display: none;
     }
 
     .excel-note {
@@ -329,6 +382,7 @@
       flex-wrap: wrap;
       gap: 10px;
       align-items: center;
+      justify-content: space-between;
       margin-bottom: 14px;
       padding: 14px 16px;
       background: linear-gradient(135deg, rgba(245, 248, 255, 0.96), rgba(255,255,255,0.85));
@@ -380,6 +434,13 @@
       font-size: 14px;
     }
 
+    td.title-cell {
+      vertical-align: middle;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
     th {
       color: #41516f;
       font-size: 13px;
@@ -392,8 +453,9 @@
     }
 
     .index-cell {
-      width: 90px;
+      width: 110px;
       font-weight: 700;
+      vertical-align: middle;
     }
 
     .link-btn {
@@ -479,15 +541,12 @@
       <h1>Часови по математика</h1>
       <p>
         Прегледна веб страна за чување и отворање на часови по категории и одделенија.
-        Поддржува автоматско вчитување од Excel, па подоцна ќе треба само да го ажурираш Excel фајлот,
-        без да менуваш код во страната.
       </p>
       <div class="hero-tags">
         <div class="hero-tag">5 категории</div>
         <div class="hero-tag">6–9 одделение</div>
         <div class="hero-tag">Excel автоматско вчитување</div>
-        <div class="hero-tag">GitHub Pages ready</div>
-      </div>
+              </div>
     </section>
 
     <section class="controls">
@@ -509,18 +568,25 @@
 
     <section class="panel">
       <div class="excel-note" id="excelStatus">
-        <span class="status-dot warn" id="statusDot"></span>
-        <span>
-          <strong>Excel статус:</strong> системот се обидува да го вчита фајлот
-          <strong>data/lessons.xlsx</strong>.
-        </span>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span class="status-dot warn" id="statusDot"></span>
+          <span>
+            <strong>Excel статус:</strong> системот се обидува да го вчита фајлот
+            <strong>data/lessons.xlsx</strong>.
+          </span>
+        </div>
+        <label class="action-btn upload-btn" for="excelFileInput">Upload Excel</label>
       </div>
 
       <div class="toolbar">
         <div class="search-wrap">
+          <span class="search-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+          </span>
           <input type="text" id="searchInput" placeholder="Пребарај по наслов на час..." />
         </div>
-        <button class="action-btn" id="clearSearchBtn">Исчисти пребарување</button>
+        <input type="file" id="excelFileInput" class="hidden-file-input" accept=".xlsx,.xls" />
+        <button class="action-btn" id="clearSearchBtn"><span class="btn-icon trash-tone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M6 6l1 14h10l1-14"></path><path d="M10 10v6"></path><path d="M14 10v6"></path></svg></span>Исчисти пребарување</button>
       </div>
 
       <div id="contentArea"></div>
@@ -529,7 +595,6 @@
         Excel фајлот треба да има еден sheet, на пример <code>Lessons</code>, со колони:
         <code>Категорија</code>, <code>Одделение</code>, <code>Ред. Број</code>,
         <code>Наслов на содржината</code>, <code>Link</code>.
-        Прифатени се и англиски имиња на колони: <code>category</code>, <code>grade</code>, <code>no</code>, <code>title</code>, <code>link</code>.
       </div>
     </section>
   </div>
@@ -662,6 +727,7 @@
     const contentArea = document.getElementById('contentArea');
     const searchInput = document.getElementById('searchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const excelFileInput = document.getElementById('excelFileInput');
     const selectedCategoryBadge = document.getElementById('selectedCategoryBadge');
     const selectedGradeBadge = document.getElementById('selectedGradeBadge');
     const totalLessonsBadge = document.getElementById('totalLessonsBadge');
@@ -745,6 +811,23 @@
       return dataset;
     }
 
+    function hasAnyDatasetRows(dataset) {
+      return categories.some(category => grades.some(grade => dataset[category.key][grade].length > 0));
+    }
+
+    function applyDataset(dataset, sourceLabel) {
+      lessonsData = dataset;
+      statusDot.className = 'status-dot success';
+      excelStatus.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span class="status-dot success"></span>
+          <span><strong>Excel статус:</strong> податоците успешно се вчитани од <strong>${sourceLabel}</strong>.</span>
+        </div>
+        <label class="action-btn upload-btn" for="excelFileInput">Upload Excel</label>
+      `;
+      renderTable();
+    }
+
     async function loadExcelData() {
       try {
         const response = await fetch('data/lessons.xlsx', { cache: 'no-store' });
@@ -757,28 +840,51 @@
         const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
         const parsedDataset = convertRowsToDataset(rows);
-        const hasAnyData = categories.some(category => grades.some(grade => parsedDataset[category.key][grade].length > 0));
-
-        if (!hasAnyData) {
+        if (!hasAnyDatasetRows(parsedDataset)) {
           throw new Error('Excel фајлот е вчитан, но нема валидни редови');
         }
 
-        lessonsData = parsedDataset;
-        statusDot.className = 'status-dot success';
-        excelStatus.innerHTML = `
-          <span class="status-dot success"></span>
-          <span><strong>Excel статус:</strong> податоците успешно се вчитани од <strong>data/lessons.xlsx</strong>.</span>
-        `;
+        applyDataset(parsedDataset, 'data/lessons.xlsx');
       } catch (error) {
         lessonsData = buildFallbackDataset();
         statusDot.className = 'status-dot warn';
         excelStatus.innerHTML = `
-          <span class="status-dot warn"></span>
-          <span><strong>Excel статус:</strong> не успеа автоматско вчитување од <strong>data/lessons.xlsx</strong>. Прикажани се резервни податоци.</span>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span class="status-dot warn"></span>
+            <span><strong>Excel статус:</strong> не успеа автоматско вчитување од <strong>data/lessons.xlsx</strong>. Прикажани се резервни податоци.</span>
+          </div>
+          <label class="action-btn upload-btn" for="excelFileInput">Upload Excel</label>
+        `;
+        renderTable();
+      }
+    }
+
+    async function loadExcelFromSelectedFile(file) {
+      if (!file) return;
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const firstSheet = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheet];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+        const parsedDataset = convertRowsToDataset(rows);
+        if (!hasAnyDatasetRows(parsedDataset)) {
+          throw new Error('Нема валидни редови во избраниот Excel фајл');
+        }
+
+        applyDataset(parsedDataset, file.name);
+      } catch (error) {
+        statusDot.className = 'status-dot warn';
+        excelStatus.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span class="status-dot warn"></span>
+            <span><strong>Excel статус:</strong> избраниот фајл <strong>${file.name}</strong> не можеше да се вчита.</span>
+          </div>
+          <label class="action-btn upload-btn" for="excelFileInput">Upload Excel</label>
         `;
       }
-
-      renderTable();
     }
 
     function renderCategories() {
@@ -808,7 +914,7 @@
           onclick="selectGrade(${grade})"
           style="${selectedGrade === grade ? `background:${selectedMeta.color}; color:${selectedMeta.accent}; border-color: rgba(0,0,0,0.05);` : ''}"
         >
-          ${grade}-то одделение
+          ${grade === 7 ? '7-мо' : grade === 8 ? '8-мо' : `${grade}-то`} одделение
         </button>
       `).join('');
     }
@@ -835,7 +941,7 @@
       const rows = filtered.map(item => `
         <tr>
           <td class="index-cell">${item.no}</td>
-          <td>${item.title}</td>
+          <td class="title-cell">${item.title}</td>
           <td>
             ${item.link
               ? `<a class="link-btn" href="${item.link}" target="_blank" rel="noopener noreferrer">Отвори</a>`
@@ -849,7 +955,7 @@
           <table>
             <thead>
               <tr>
-                <th>Ред. број</th>
+                <th>РЕДЕН БРОЈ</th>
                 <th>Наслов на содржината</th>
                 <th>Линк</th>
               </tr>
@@ -877,6 +983,12 @@
     clearSearchBtn.addEventListener('click', () => {
       searchInput.value = '';
       renderTable();
+    });
+
+    excelFileInput.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      await loadExcelFromSelectedFile(file);
+      event.target.value = '';
     });
 
     renderCategories();
