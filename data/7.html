@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="mk" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Математика 7 - Операции со Множества (Социјални Мрежи)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        neon: {
+                            pink: '#ff007f',
+                            purple: '#7928ca',
+                            cyan: '#00f2fe',
+                            blue: '#4f46e5',
+                            green: '#10b981',
+                            amber: '#f59e0b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        outfit: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #7928ca 0%, #ff007f 50%, #4f46e5 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .dark .glass-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .venn-region {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .venn-region:hover {
+            filter: brightness(1.15);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #a855f7;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-full font-sans transition-colors duration-200 flex flex-col">
+
+    <!-- Navigation / Top bar -->
+    <header class="sticky top-0 z-50 glass-card border-b border-slate-200 dark:border-slate-800 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Title -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl gradient-bg flex items-center justify-center text-white font-black text-xl shadow-lg shadow-purple-500/30">
+                        <i class="fa-solid fa-shapes"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-black font-outfit bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500">
+                            Математика VII одделение
+                        </h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Нова концепција • Операции со множества (∩, ∪, \)</p>
+                    </div>
+                </div>
+
+                <!-- XP Score, Level & Theme Toggle -->
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 bg-purple-50 dark:bg-slate-800/80 px-3 py-1.5 rounded-full border border-purple-200 dark:border-purple-800/50 shadow-sm">
+                        <i class="fa-solid fa-bolt text-amber-500 animate-pulse"></i>
+                        <span class="text-xs font-bold text-slate-700 dark:text-slate-200"><span id="user-xp" class="text-purple-600 dark:text-purple-400 font-black text-sm">0</span> XP</span>
+                    </div>
+                    <button id="theme-toggle" class="p-2 rounded-xl bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition">
+                        <i class="fa-solid fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:inline text-amber-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
+
+        <!-- Navigation Tabs -->
+        <nav class="flex space-x-2 border-b border-slate-200 dark:border-slate-800 mb-6 overflow-x-auto pb-2 custom-scrollbar">
+            <button onclick="switchTab('theory')" id="tab-theory" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm rounded-xl flex items-center gap-2 transition bg-purple-600 text-white shadow-md shadow-purple-500/20">
+                <i class="fa-solid fa-book-bookmark"></i> 1. Интерактивна Теорија
+            </button>
+            <button onclick="switchTab('simulator')" id="tab-simulator" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm rounded-xl flex items-center gap-2 transition text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800">
+                <i class="fa-solid fa-circle-nodes"></i> 2. Венов Дијаграм Симулатор
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm rounded-xl flex items-center gap-2 transition text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800">
+                <i class="fa-solid fa-gamepad"></i> 3. Предизвици & Задачи (10)
+            </button>
+            <button onclick="switchTab('results')" id="tab-results" class="tab-btn px-4 py-2.5 font-bold text-xs sm:text-sm rounded-xl flex items-center gap-2 transition text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800">
+                <i class="fa-solid fa-award"></i> 4. Сертификат & Значки
+            </button>
+        </nav>
+
+        <!-- TAB 1: THEORY -->
+        <section id="sec-theory" class="tab-content space-y-6">
+            <!-- Hero banner -->
+            <div class="gradient-bg rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+                <div class="relative z-10 max-w-3xl">
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-md">
+                        Математика во Дигиталниот Свет 🎧📱
+                    </span>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold font-outfit mt-3 mb-2">Операции со Множества во Реален Живот</h2>
+                    <p class="text-purple-100 text-sm sm:text-base leading-relaxed">
+                        Кога бараш песни кои ги слушаате и ти и твојот другар на <strong>Spotify</strong>, ти пресметуваш <strong>ПРЕСЕК</strong>! Кога правите заедничка плејлиста со сите песни, правите <strong>УНИЈА</strong>. А кога бараш песни кои ги имаш само ти, пресметуваш <strong>РАЗЛИКА</strong>!
+                    </p>
+                </div>
+                <i class="fa-brands fa-tiktok absolute -bottom-8 -right-8 text-9xl opacity-15 pointer-events-none"></i>
+            </div>
+
+            <!-- Operations 3 Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1: Intersection -->
+                <div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 relative overflow-hidden group hover:border-purple-500 transition">
+                    <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center font-black text-xl mb-4">
+                        ∩
+                    </div>
+                    <h3 class="font-black text-slate-900 dark:text-white text-lg mb-2 font-outfit">1. Пресек на множества (A ∩ B)</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">
+                        Множество од сите елементи кои припаѓаат <strong>И во A И во B</strong> (заеднички елементи).
+                    </p>
+                    <div class="bg-slate-100 dark:bg-slate-900 p-3 rounded-xl text-xs font-mono text-purple-600 dark:text-purple-300 font-bold border border-slate-200 dark:border-slate-800">
+                        A ∩ B = {x | x ∈ A и x ∈ B}
+                    </div>
+                </div>
+
+                <!-- Card 2: Union -->
+                <div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 relative overflow-hidden group hover:border-pink-500 transition">
+                    <div class="w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-900/40 text-pink-600 dark:text-pink-400 flex items-center justify-center font-black text-xl mb-4">
+                        ∪
+                    </div>
+                    <h3 class="font-black text-slate-900 dark:text-white text-lg mb-2 font-outfit">2. Унија на множества (A ∪ B)</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">
+                        Множество со сите елементи од A и сите елементи од B земени <strong>заедно</strong> (без повторување).
+                    </p>
+                    <div class="bg-slate-100 dark:bg-slate-900 p-3 rounded-xl text-xs font-mono text-pink-600 dark:text-pink-300 font-bold border border-slate-200 dark:border-slate-800">
+                        A ∪ B = {x | x ∈ A или x ∈ B}
+                    </div>
+                </div>
+
+                <!-- Card 3: Difference -->
+                <div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 relative overflow-hidden group hover:border-cyan-500 transition">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center font-black text-xl mb-4">
+                        \
+                    </div>
+                    <h3 class="font-black text-slate-900 dark:text-white text-lg mb-2 font-outfit">3. Разлика на множества (A \ B)</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">
+                        Множество од сите елементи кои припаѓаат во A, но <strong>НЕ припаѓаат во B</strong>.
+                    </p>
+                    <div class="bg-slate-100 dark:bg-slate-900 p-3 rounded-xl text-xs font-mono text-cyan-600 dark:text-cyan-300 font-bold border border-slate-200 dark:border-slate-800">
+                        A \ B = {x | x ∈ A и x ∉ B}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formula Card -->
+            <div class="glass-card rounded-2xl p-6 border border-amber-200 dark:border-amber-900/40 bg-amber-50/40 dark:bg-slate-900/50">
+                <div class="flex items-start gap-4">
+                    <div class="p-3 bg-amber-500 text-white rounded-2xl text-2xl shadow-md">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-900 dark:text-white text-lg font-outfit">Важна формула за број на елементи во Унија:</h4>
+                        <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">
+                            Кога ги собираме елементите од две множества A и B, елементите што се во пресекот ги броиме двапати. Затоа важи формулата:
+                        </p>
+                        <div class="mt-3 p-3 bg-white dark:bg-slate-950 rounded-xl border border-amber-300 dark:border-amber-800/60 font-mono text-sm text-amber-600 dark:text-amber-400 font-black inline-block">
+                            n(A ∪ B) = n(A) + n(B) - n(A ∩ B)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: INTERACTIVE SIMULATOR -->
+        <section id="sec-simulator" class="tab-content hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6 border border-slate-200 dark:border-slate-800">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h3 class="text-xl font-extrabold text-slate-900 dark:text-white font-outfit flex items-center gap-2">
+                            <i class="fa-solid fa-circle-nodes text-purple-500"></i> Интерактивен Лабораториски Венов Дијаграм
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+                            Кликни на операциите долу за да видиш како се менува Веновиот дијаграм и кои елементи се добиваат!
+                        </p>
+                    </div>
+
+                    <!-- Operation Selector Buttons -->
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="setVennOp('union')" id="vbtn-union" class="v-btn px-3 py-1.5 rounded-xl font-bold text-xs bg-purple-600 text-white shadow-sm">
+                            A ∪ B (Унија)
+                        </button>
+                        <button onclick="setVennOp('inter')" id="vbtn-inter" class="v-btn px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                            A ∩ B (Пресек)
+                        </button>
+                        <button onclick="setVennOp('diffAB')" id="vbtn-diffAB" class="v-btn px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                            A \ B (Разлика)
+                        </button>
+                        <button onclick="setVennOp('diffBA')" id="vbtn-diffBA" class="v-btn px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                            B \ A (Разлика)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sets context preview -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-xs sm:text-sm">
+                    <div class="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20">
+                        <span class="font-bold text-purple-600 dark:text-purple-400 font-outfit text-base">Множество A (TikTok Креатори):</span>
+                        <div class="mt-1 font-mono text-slate-700 dark:text-slate-300">A = {Марко, Стефан, Ана, Јана}</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-pink-500/10 border border-pink-500/20">
+                        <span class="font-bold text-pink-600 dark:text-pink-400 font-outfit text-base">Множество B (Instagram Креатори):</span>
+                        <div class="mt-1 font-mono text-slate-700 dark:text-slate-300">B = {Ана, Јана, Филип, Елена}</div>
+                    </div>
+                </div>
+
+                <!-- SVG Venn Diagram Canvas -->
+                <div class="bg-slate-900 rounded-2xl p-6 flex flex-col items-center justify-center relative overflow-hidden min-h-[300px]">
+                    <svg class="w-full max-w-md h-64" viewBox="0 0 400 250">
+                        <defs>
+                            <!-- Circle Masks / Clips -->
+                            <clipPath id="clipA"><circle cx="150" cy="125" r="85" /></clipPath>
+                            <clipPath id="clipB"><circle cx="250" cy="125" r="85" /></clipPath>
+                        </defs>
+
+                        <!-- Region A Only -->
+                        <path id="region-a" d="M 150 40 A 85 85 0 0 0 150 210 A 85 85 0 0 1 150 40 Z" fill="#7928ca" fill-opacity="0.2" class="venn-region" />
+                        
+                        <!-- Region B Only -->
+                        <path id="region-b" d="M 250 40 A 85 85 0 0 1 250 210 A 85 85 0 0 0 250 40 Z" fill="#ff007f" fill-opacity="0.2" class="venn-region" />
+                        
+                        <!-- Intersection Region -->
+                        <path id="region-inter" d="M 150 40 A 85 85 0 0 1 250 125 A 85 85 0 0 1 150 210 A 85 85 0 0 1 150 40 Z" fill="#00f2fe" fill-opacity="0.2" clip-path="url(#clipB)" class="venn-region" />
+
+                        <!-- Circle Outlines -->
+                        <circle cx="150" cy="125" r="85" fill="none" stroke="#7928ca" stroke-width="3" />
+                        <circle cx="250" cy="125" r="85" fill="none" stroke="#ff007f" stroke-width="3" />
+
+                        <!-- Set Labels -->
+                        <text x="110" y="35" fill="#a855f7" font-weight="extrabold" font-size="16">A (TikTok)</text>
+                        <text x="290" y="35" fill="#ec4899" font-weight="extrabold" font-size="16">B (Instagram)</text>
+
+                        <!-- Elements Text Overlay -->
+                        <!-- A only -->
+                        <text x="110" y="115" fill="#ffffff" font-size="12" text-anchor="middle">Марко</text>
+                        <text x="110" y="140" fill="#ffffff" font-size="12" text-anchor="middle">Стефан</text>
+
+                        <!-- Intersection -->
+                        <text x="200" y="115" fill="#ffffff" font-weight="bold" font-size="12" text-anchor="middle">Ана</text>
+                        <text x="200" y="140" fill="#ffffff" font-weight="bold" font-size="12" text-anchor="middle">Јана</text>
+
+                        <!-- B only -->
+                        <text x="290" y="115" fill="#ffffff" font-size="12" text-anchor="middle">Филип</text>
+                        <text x="290" y="140" fill="#ffffff" font-size="12" text-anchor="middle">Елена</text>
+                    </svg>
+
+                    <!-- Interactive Result Output Box -->
+                    <div class="mt-4 bg-slate-950 border border-slate-800 rounded-xl p-4 w-full max-w-md text-center font-mono">
+                        <div class="text-xs text-slate-400 mb-1" id="venn-op-desc">Резултат од операција Унија (A ∪ B):</div>
+                        <div class="text-purple-400 font-extrabold text-base sm:text-lg" id="venn-res-set">
+                            { Марко, Стефан, Ана, Јана, Филип, Елена }
+                        </div>
+                        <div class="text-xs text-slate-500 mt-2">Број на елементи: <span id="venn-res-count" class="text-pink-400 font-bold">6</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: QUIZ & TASKS -->
+        <section id="sec-quiz" class="tab-content hidden space-y-6">
+            <!-- Level Bar / Progress Header -->
+            <div class="glass-card p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase text-slate-500 tracking-wider">Нивоа:</span>
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                        Ниво I (Задачи 1-3)
+                    </span>
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                        Ниво II (Задачи 4-7)
+                    </span>
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+                        Ниво III (Задачи 8-10)
+                    </span>
+                </div>
+                <div class="text-sm font-extrabold font-outfit text-slate-700 dark:text-slate-300">
+                    Решени: <span id="solved-count" class="text-purple-600 dark:text-purple-400">0</span> / 10
+                </div>
+            </div>
+
+            <!-- Dynamic Tasks Container -->
+            <div id="tasks-container" class="space-y-6">
+                <!-- Rendered dynamically by JavaScript -->
+            </div>
+        </section>
+
+        <!-- TAB 4: RESULTS & CERTIFICATE -->
+        <section id="sec-results" class="tab-content hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6 sm:p-10 text-center space-y-6 relative overflow-hidden border border-slate-200 dark:border-slate-800">
+                <div class="w-24 h-24 mx-auto rounded-3xl gradient-bg flex items-center justify-center text-white text-4xl shadow-xl shadow-purple-500/30">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-black font-outfit text-slate-900 dark:text-white">Дигитална Картичка за Постигнат Успех</h2>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">Тема: Операции со Множества (VII одделение)</p>
+                </div>
+
+                <!-- Total XP Badge Display -->
+                <div class="inline-block bg-purple-50 dark:bg-slate-900 px-8 py-4 rounded-2xl border border-purple-200 dark:border-purple-800">
+                    <div class="text-3xl sm:text-4xl font-black text-purple-600 dark:text-purple-400 font-outfit" id="results-total-xp">0</div>
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Освоени XP Поени</div>
+                </div>
+
+                <!-- Badges Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto pt-2">
+                    <div id="badge-1" class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 opacity-40 transition duration-300">
+                        <div class="text-4xl mb-2">🎯</div>
+                        <h4 class="font-bold text-sm font-outfit text-slate-900 dark:text-white">Мастер за множества</h4>
+                        <p class="text-xs text-slate-500 mt-1">Решени ги сите задачи од Ниво I</p>
+                    </div>
+
+                    <div id="badge-2" class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 opacity-40 transition duration-300">
+                        <div class="text-4xl mb-2">🎧</div>
+                        <h4 class="font-bold text-sm font-outfit text-slate-900 dark:text-white">TikTok & Spotify Аналитичар</h4>
+                        <p class="text-xs text-slate-500 mt-1">Решени ги сите задачи од Ниво II</p>
+                    </div>
+
+                    <div id="badge-3" class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 opacity-40 transition duration-300">
+                        <div class="text-4xl mb-2">🧠</div>
+                        <h4 class="font-bold text-sm font-outfit text-slate-900 dark:text-white">Венов Експерт</h4>
+                        <p class="text-xs text-slate-500 mt-1">Решени ги напредните задачи од Ниво III</p>
+                    </div>
+                </div>
+
+                <!-- Reset button -->
+                <div class="pt-6 border-t border-slate-200 dark:border-slate-800">
+                    <button onclick="resetAllProgress()" class="px-5 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition flex items-center gap-2 mx-auto">
+                        <i class="fa-solid fa-arrows-rotate"></i> Ресетирај го целиот напредок
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-4 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-500 font-medium">
+        Математика за VII одделение • Дигитална интерактивна апликација според Новата Концепција
+    </footer>
+
+    <script>
+        let userXP = 0;
+        let solvedTasks = new Set();
+        let currentVennOp = 'union';
+
+        // Tasks Data Array
+        const tasksData = [
+            // LEVEL I (Tasks 1-3)
+            {
+                id: 1,
+                level: 1,
+                badge: "Ниво I • Базно",
+                title: "Задача 1: Симбол за заеднички омилени песни на Spotify",
+                type: "mcq",
+                question: "Матеј и Давид споредуваат песни на Spotify. Сакаат да формираат множество со песни кои ги имаат **И двајцата**. Кој симбол за операција со множества треба да го користат?",
+                options: [
+                    "A ∪ B (Унија)",
+                    "A ∩ B (Пресек)",
+                    "A \\ B (Разлика)",
+                    "A ⊂ B (Подмножество)"
+                ],
+                correct: 1,
+                xp: 50,
+                explanation: "Пресекот (∩) ги содржи само оние елементи кои припаѓаат И во првото И во второто множество (заедничките песни)."
+            },
+            {
+                id: 2,
+                level: 1,
+                badge: "Ниво I • Базно",
+                title: "Задача 2: Наоѓање на пресек на следбеници",
+                type: "fill",
+                question: "Дадени се множествата со следбеници на TikTok:<br>A = {Марко, Елена, Петар}<br>B = {Елена, Јана, Петар}<br><br>Пополни ги елементите на пресекот во формат <strong>{име, име}</strong> (без празни места):<br><input type='text' id='fill-2' class='mt-2 inline-block border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-xl px-3 py-1.5 font-mono font-bold text-purple-600 dark:text-purple-400 text-sm' placeholder='{x,y}' />",
+                correctAnswer: "{Елена,Петар}",
+                xp: 50,
+                explanation: "Елементите кои се наоѓаат и во A и во B се Елена и Петар. Се запишуваат како {Елена,Петар} или {Петар,Елена}."
+            },
+            {
+                id: 3,
+                level: 1,
+                badge: "Ниво I • Базно",
+                title: "Задача 3: Идентификација на Разлика на множества",
+                type: "mcq",
+                question: "Ако множеството A ги содржи омилените предметите на Сара: A = {Математика, Физика, Биологија}, а B омилените предмети на Мила: B = {Физика, Историја}, кое множество ја претставува разликата **A \\ B**?",
+                options: [
+                    "{Математика, Физика, Биологија, Историја}",
+                    "{Физика}",
+                    "{Математика, Биологија}",
+                    "{Историја}"
+                ],
+                correct: 2,
+                xp: 50,
+                explanation: "Разликата A \\ B ги содржи сите елементи од A кои ги нема во B. Го отстрануваме 'Физика' од A, па остануваат {Математика, Биологија}."
+            },
+
+            // LEVEL II (Tasks 4-7)
+            {
+                id: 4,
+                level: 2,
+                badge: "Ниво II • Средно",
+                title: "Задача 4: Унија на гејмерски тимови (Fortnite & Roblox)",
+                type: "fill",
+                question: "Тимот A за Fortnite има играчи: A = {Alex, Rex}<br>Тимот B за Roblox има играчи: B = {Rex, Maya, Leo}<br><br>Запиши го множеството <strong>A ∪ B</strong> (Унија) во формат <strong>{Alex,Leo,Maya,Rex}</strong> по азбучен редослед без празни места:<br><input type='text' id='fill-4' class='mt-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-xl px-3 py-1.5 font-mono font-bold text-pink-600 dark:text-pink-400 text-sm' placeholder='{x,y,..}' />",
+                correctAnswer: "{Alex,Leo,Maya,Rex}",
+                xp: 100,
+                explanation: "Унијата ги обединува сите играчи од двете множества, а повторениот елемент (Rex) се запишува само еднаш."
+            },
+            {
+                id: 5,
+                level: 2,
+                badge: "Ниво II • Средно",
+                title: "Задача 5: Одредување на бројност на елементи во Пресек",
+                type: "mcq",
+                question: "Во еден клас од 25 ученици, 18 користат Instagram, a 15 користат TikTok. Ако секој ученик користи барем една од овие две мрежи, колку ученици ги користат **И ДВЕТЕ** мрежи |A ∩ B|?",
+                options: [
+                    "5 ученици",
+                    "8 ученици",
+                    "10 ученици",
+                    "33 ученици"
+                ],
+                correct: 1,
+                xp: 100,
+                explanation: "Користиме: n(A ∩ B) = n(A) + n(B) - n(A ∪ B) = 18 + 15 - 25 = 33 - 25 = 8 ученици."
+            },
+            {
+                id: 6,
+                level: 2,
+                badge: "Ниво II • Средно",
+                title: "Задача 6: Пресметување на разлика B \\ A",
+                type: "fill",
+                question: "Дадени се множества со броеви на лајкови:<br>A = {10, 20, 30, 40}<br>B = {30, 40, 50, 60}<br><br>Пресметај ја разликата <strong>B \\ A</strong> и запиши го резултатот во формат <strong>{50,60}</strong> (без празни места):<br><input type='text' id='fill-6' class='mt-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-xl px-3 py-1.5 font-mono font-bold text-cyan-600 dark:text-cyan-400 text-sm' placeholder='{x,y}' />",
+                correctAnswer: "{50,60}",
+                xp: 100,
+                explanation: "Разликата B \\ A ги бара елементите што се во B, но ги нема во A. Тоа се броевите 50 и 60."
+            },
+            {
+                id: 7,
+                level: 2,
+                badge: "Ниво II • Средно",
+                title: "Задача 7: Формула за бројност на елементи n(A ∪ B)",
+                type: "fill",
+                question: "Дадени се множествата A и B за кои знаеме: n(A) = 12, n(B) = 15, и n(A ∩ B) = 5.<br>Колку изнесува вкупниот број на елементи во нивната унија **n(A ∪ B)**?<br><input type='number' id='fill-7' class='mt-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-xl px-3 py-1.5 font-mono font-bold text-amber-600 dark:text-amber-400 text-sm w-32' placeholder='?' />",
+                correctAnswer: "22",
+                xp: 100,
+                explanation: "Според формулата: n(A ∪ B) = n(A) + n(B) - n(A ∩ B) = 12 + 15 - 5 = 22."
+            },
+
+            // LEVEL III (Tasks 8-10)
+            {
+                id: 8,
+                level: 3,
+                badge: "Ниво III • Напредно / Со Постапка",
+                title: "Задача 8: Анализа на анкета за омилени спортски активности",
+                type: "full_procedure",
+                question: "Во едно VII одделение со 30 ученици е спроведена анкета за омилени спортови:<br>• 18 ученици тренираат Фудбал (множество F)<br>• 14 ученици тренираат Кошарка (множество K)<br>• 6 ученици тренираат и Фудбал и Кошарка<br><br><strong>Барање:</strong><br>1) Пресметај колку ученици тренираат <strong>САМО</strong> фудбал (F \\ K)?<br>2) Колку ученици тренираат <strong>САМО</strong> кошарка (K \\ F)?<br>3) Колку ученици НЕ тренираат ниту еден од овие два спорта?",
+                sampleSolution: "1) САМО фудбал: n(F \\ K) = 18 - 6 = 12 ученици.\n2) САМО кошарка: n(K \\ F) = 14 - 6 = 8 ученици.\n3) Ученици што тренираат барем еден спорт: n(F ∪ K) = 12 + 8 + 6 = 26 ученици.\nУченици кои НЕ тренираат ништо: 30 - 26 = 4 ученици.",
+                xp: 150
+            },
+            {
+                id: 9,
+                level: 3,
+                badge: "Ниво III • Напредно / Со Постапка",
+                title: "Задача 9: Комбинирани операции со три множества",
+                type: "full_procedure",
+                question: "Дадени се множествата од омилени предмети:<br>A = {Математика, Физика, Информатика}<br>B = {Информатика, Англиски, Ликовно}<br>C = {Математика, Информатика, Музичко}<br><br><strong>Барање:</strong><br>1) Најди го пресекот на сите три множества: (A ∩ B ∩ C).<br>2) Најди го множеството (A ∪ B) \\ C.",
+                sampleSolution: "1) Елемент кој се јавува во сите три множества е Информатика -> (A ∩ B ∩ C) = {Информатика}.\n2) Прво унија A ∪ B = {Математика, Физика, Информатика, Англиски, Ликовно}.\nКога ќе ги избришеме елементите од C (Математика, Информатика, Музичко), останува: (A ∪ B) \\ C = {Физика, Англиски, Ликовно}.",
+                xp: 150
+            },
+            {
+                id: 10,
+                level: 3,
+                badge: "Ниво III • Напредно / Со Постапка",
+                title: "Задача 10: Логички предизвик за подмножества",
+                type: "full_procedure",
+                question: "Ако за две множества A и B важи дека **A ∩ B = A**, што можиш да заклучиш за односот помеѓу множествата A и B?<br>Објасни со свои зборови и со еден пример од социјалните мрежи!",
+                sampleSolution: "Заклучок: Множеството A е подмножество од B (A ⊆ B).\nОва значи дека сите елементи од A се воедно и елементи на B.\nПример: A = {Премиум TikTok креатори во Македонија}, B = {Сите TikTok креатори во Македонија}. Пресекот на овие две множества го дава само множеството A.",
+                xp: 150
+            }
+        ];
+
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+
+            tasksData.forEach((task) => {
+                const card = document.createElement('div');
+                card.className = "glass-card rounded-2xl p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm";
+
+                let badgeColor = "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800";
+                if(task.level === 2) badgeColor = "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800";
+                if(task.level === 3) badgeColor = "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800";
+
+                let bodyHtml = '';
+
+                if(task.type === 'mcq') {
+                    bodyHtml = `
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                            ${task.options.map((opt, idx) => `
+                                <button onclick="checkMCQ(${task.id}, ${idx})" id="task-${task.id}-opt-${idx}" 
+                                    class="opt-btn p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-left hover:border-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-950/30 transition text-xs sm:text-sm font-medium">
+                                    <span class="inline-block w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold text-center leading-6 mr-2">${String.fromCharCode(65 + idx)}</span>
+                                    ${opt}
+                                </button>
+                            `).join('')}
+                        </div>
+                    `;
+                } else if(task.type === 'fill') {
+                    bodyHtml = `
+                        <div class="pt-2 flex flex-wrap items-center gap-3">
+                            <button onclick="checkFill(${task.id})" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md transition">
+                                Провери одговор
+                            </button>
+                        </div>
+                    `;
+                } else if(task.type === 'full_procedure') {
+                    bodyHtml = `
+                        <div class="space-y-3 pt-2">
+                            <textarea id="task-${task.id}-text" rows="3" class="w-full p-3.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs sm:text-sm focus:ring-2 focus:ring-purple-500 outline-none font-mono" placeholder="Напиши ја твојата постапка и одговори..."></textarea>
+                            <button onclick="checkProcedure(${task.id})" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2">
+                                <i class="fa-solid fa-check"></i> Прикажи точно решение и спореди
+                            </button>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-2 border-b border-slate-200/60 dark:border-slate-800/80 pb-3">
+                        <span class="px-3 py-1 rounded-lg text-xs font-bold border ${badgeColor}">
+                            ${task.badge}
+                        </span>
+                        <span class="text-xs font-bold text-amber-500 flex items-center gap-1">
+                            <i class="fa-solid fa-bolt"></i> +${task.xp} XP
+                        </span>
+                    </div>
+
+                    <h3 class="font-extrabold text-slate-900 dark:text-white text-base font-outfit">${task.title}</h3>
+                    <div class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">${task.question}</div>
+
+                    ${bodyHtml}
+
+                    <!-- Feedback Box -->
+                    <div id="feedback-${task.id}" class="hidden p-4 rounded-xl text-xs sm:text-sm space-y-2 mt-3"></div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function setVennOp(op) {
+            currentVennOp = op;
+            
+            // Highlight Buttons
+            document.querySelectorAll('.v-btn').forEach(btn => {
+                btn.className = "v-btn px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
+            });
+            document.getElementById(`vbtn-${op}`).className = "v-btn px-3 py-1.5 rounded-xl font-bold text-xs bg-purple-600 text-white shadow-sm";
+
+            const regA = document.getElementById('region-a');
+            const regB = document.getElementById('region-b');
+            const regInter = document.getElementById('region-inter');
+            const desc = document.getElementById('venn-op-desc');
+            const resSet = document.getElementById('venn-res-set');
+            const resCount = document.getElementById('venn-res-count');
+
+            // Reset fills
+            regA.setAttribute('fill-opacity', '0.15');
+            regB.setAttribute('fill-opacity', '0.15');
+            regInter.setAttribute('fill-opacity', '0.15');
+
+            if(op === 'union') {
+                regA.setAttribute('fill-opacity', '0.7');
+                regB.setAttribute('fill-opacity', '0.7');
+                regInter.setAttribute('fill-opacity', '0.7');
+                desc.innerText = "Резултат од операција Унија (A ∪ B):";
+                resSet.innerText = "{ Марко, Стефан, Ана, Јана, Филип, Елена }";
+                resCount.innerText = "6";
+            } else if(op === 'inter') {
+                regInter.setAttribute('fill-opacity', '0.85');
+                desc.innerText = "Резултат од операција Пресек (A ∩ B):";
+                resSet.innerText = "{ Ана, Јана }";
+                resCount.innerText = "2";
+            } else if(op === 'diffAB') {
+                regA.setAttribute('fill-opacity', '0.85');
+                desc.innerText = "Резултат од операција Разлика (A \\ B):";
+                resSet.innerText = "{ Марко, Стефан }";
+                resCount.innerText = "2";
+            } else if(op === 'diffBA') {
+                regB.setAttribute('fill-opacity', '0.85');
+                desc.innerText = "Резултат од операција Разлика (B \\ A):";
+                resSet.innerText = "{ Филип, Елена }";
+                resCount.innerText = "2";
+            }
+        }
+
+        function checkMCQ(taskId, optIdx) {
+            const task = tasksData.find(t => t.id === taskId);
+            const feedback = document.getElementById(`feedback-${taskId}`);
+            
+            for(let i=0; i<task.options.length; i++) {
+                const btn = document.getElementById(`task-${taskId}-opt-${i}`);
+                if(btn) btn.disabled = true;
+            }
+
+            feedback.classList.remove('hidden', 'bg-emerald-50', 'bg-rose-50', 'text-emerald-900', 'text-rose-900', 'dark:bg-emerald-950/60', 'dark:bg-rose-950/60');
+
+            if(optIdx === task.correct) {
+                feedback.classList.add('bg-emerald-50', 'dark:bg-emerald-950/60', 'text-emerald-900', 'dark:text-emerald-200', 'border', 'border-emerald-300', 'dark:border-emerald-800');
+                feedback.innerHTML = `
+                    <div class="font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500 text-base"></i> Точно! (+${task.xp} XP)</div>
+                    <div>${task.explanation}</div>
+                `;
+                addXP(task.xp, taskId);
+            } else {
+                feedback.classList.add('bg-rose-50', 'dark:bg-rose-950/60', 'text-rose-900', 'dark:text-rose-200', 'border', 'border-rose-300', 'dark:border-rose-800');
+                feedback.innerHTML = `
+                    <div class="font-bold flex items-center gap-2"><i class="fa-solid fa-circle-xmark text-rose-500 text-base"></i> Неточно.</div>
+                    <div><strong>Точен одговор:</strong> ${task.options[task.correct]}</div>
+                    <div class="mt-1 opacity-90">${task.explanation}</div>
+                `;
+            }
+        }
+
+        function checkFill(taskId) {
+            const task = tasksData.find(t => t.id === taskId);
+            const inputEl = document.getElementById(`fill-${taskId}`);
+            const feedback = document.getElementById(`feedback-${taskId}`);
+
+            if(!inputEl) return;
+            const userVal = inputEl.value.trim().replaceAll(' ', '').toLowerCase();
+            const correctVal = task.correctAnswer.trim().replaceAll(' ', '').toLowerCase();
+
+            feedback.classList.remove('hidden', 'bg-emerald-50', 'bg-rose-50', 'text-emerald-900', 'text-rose-900', 'dark:bg-emerald-950/60', 'dark:bg-rose-950/60');
+
+            if(userVal === correctVal) {
+                feedback.classList.add('bg-emerald-50', 'dark:bg-emerald-950/60', 'text-emerald-900', 'dark:text-emerald-200', 'border', 'border-emerald-300', 'dark:border-emerald-800');
+                feedback.innerHTML = `
+                    <div class="font-bold flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500 text-base"></i> Точно! (+${task.xp} XP)</div>
+                    <div>${task.explanation}</div>
+                `;
+                addXP(task.xp, taskId);
+            } else {
+                feedback.classList.add('bg-rose-50', 'dark:bg-rose-950/60', 'text-rose-900', 'dark:text-rose-200', 'border', 'border-rose-300', 'dark:border-rose-800');
+                feedback.innerHTML = `
+                    <div class="font-bold flex items-center gap-2"><i class="fa-solid fa-circle-xmark text-rose-500 text-base"></i> Неточно или погрешен формат.</div>
+                    <div><strong>Точен одговор:</strong> ${task.correctAnswer}</div>
+                    <div class="mt-1 opacity-90">${task.explanation}</div>
+                `;
+            }
+        }
+
+        function checkProcedure(taskId) {
+            const task = tasksData.find(t => t.id === taskId);
+            const feedback = document.getElementById(`feedback-${taskId}`);
+
+            feedback.classList.remove('hidden');
+            feedback.classList.add('bg-purple-50', 'dark:bg-purple-950/60', 'text-purple-900', 'dark:text-purple-200', 'border', 'border-purple-300', 'dark:border-purple-800');
+            
+            feedback.innerHTML = `
+                <div class="font-bold flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                    <i class="fa-solid fa-graduation-cap text-base"></i> Пример за целосна постапка и точно решение:
+                </div>
+                <div class="font-mono text-xs sm:text-sm whitespace-pre-line bg-white dark:bg-slate-900 p-3.5 rounded-xl mt-2 border border-purple-200 dark:border-slate-800">
+                    ${task.sampleSolution}
+                </div>
+                <div class="text-xs text-purple-600 dark:text-purple-400 mt-2">
+                    Спореди го твојот одговор со ова решение. Ако твојата постапка е точна, освојуваш XP!
+                </div>
+            `;
+            addXP(task.xp, taskId);
+        }
+
+        function addXP(points, taskId) {
+            if(!solvedTasks.has(taskId)) {
+                solvedTasks.add(taskId);
+                userXP += points;
+                updateXPDisplay();
+            }
+        }
+
+        function updateXPDisplay() {
+            document.getElementById('user-xp').innerText = userXP;
+            document.getElementById('results-total-xp').innerText = userXP;
+            document.getElementById('solved-count').innerText = solvedTasks.size;
+
+            // Unlock Badges
+            if(solvedTasks.has(1) && solvedTasks.has(2) && solvedTasks.has(3)) {
+                document.getElementById('badge-1').classList.remove('opacity-40');
+                document.getElementById('badge-1').classList.add('border-emerald-500', 'bg-emerald-50/50', 'dark:bg-emerald-950/30');
+            }
+            if(solvedTasks.has(4) && solvedTasks.has(5) && solvedTasks.has(6) && solvedTasks.has(7)) {
+                document.getElementById('badge-2').classList.remove('opacity-40');
+                document.getElementById('badge-2').classList.add('border-amber-500', 'bg-amber-50/50', 'dark:bg-amber-950/30');
+            }
+            if(solvedTasks.has(8) && solvedTasks.has(9) && solvedTasks.has(10)) {
+                document.getElementById('badge-3').classList.remove('opacity-40');
+                document.getElementById('badge-3').classList.add('border-rose-500', 'bg-rose-50/50', 'dark:bg-rose-950/30');
+            }
+        }
+
+        function resetAllProgress() {
+            userXP = 0;
+            solvedTasks.clear();
+            updateXPDisplay();
+            renderTasks();
+            alert('Напредокот е успешно ресетиран!');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-600', 'text-white', 'shadow-md', 'shadow-purple-500/20');
+                btn.classList.add('text-slate-600', 'dark:text-slate-400');
+            });
+
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.add('bg-purple-600', 'text-white', 'shadow-md', 'shadow-purple-500/20');
+            activeBtn.classList.remove('text-slate-600', 'dark:text-slate-400');
+        }
+
+        // Theme Toggle Logic
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // Initialize App on window load
+        window.onload = function() {
+            renderTasks();
+            updateXPDisplay();
+            setVennOp('union');
+        };
+    </script>
+</body>
+</html>
