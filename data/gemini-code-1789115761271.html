@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивен час: Релации во Математиката</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #50e3c2;
+            --accent: #f5a623;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --bg-light: #f8fafc;
+            --card-bg: #ffffff;
+            --text-dark: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border-radius: 16px;
+            --shadow: 0 10px 25px rgba(0,0,0,0.05);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--bg-light);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(74, 144, 226, 0.4);
+            background: #3a7bd5;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-hint {
+            background: #f39c12;
+            box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
+        }
+
+        .btn-hint:hover { background: #e67e22; }
+
+        /* Interactive View Controls */
+        .controls-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .view-panel {
+            background: var(--bg-light);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            min-height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Matrices & Lists */
+        .matrix-table {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        .matrix-table td, .matrix-table th {
+            border: 2px solid #cbd5e1;
+            padding: 12px 18px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .matrix-table td.active {
+            background-color: #dbeafe;
+            color: var(--primary);
+        }
+
+        .matrix-table td.highlight-diag {
+            background-color: #fef08a;
+        }
+
+        .pairs-list {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            letter-spacing: 1px;
+        }
+
+        /* SVG Diagram Styling */
+        svg.diagram {
+            width: 100%;
+            max-width: 400px;
+            height: 250px;
+            overflow: visible;
+        }
+
+        .node {
+            fill: #60a5fa;
+            stroke: #1d4ed8;
+            stroke-width: 3;
+            transition: var(--transition);
+        }
+
+        .node-text {
+            fill: white;
+            font-weight: bold;
+            font-size: 18px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+
+        .arrow-line {
+            stroke: #64748b;
+            stroke-width: 3;
+            fill: none;
+            transition: var(--transition);
+        }
+
+        .arrow-line.active {
+            stroke: #2563eb;
+            stroke-width: 4;
+        }
+
+        .arrow-line.highlight {
+            stroke: #e11d48;
+            stroke-width: 4;
+            stroke-dasharray: 6;
+            animation: dash 1s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -12; }
+        }
+
+        /* Rule Cards Grid */
+        .rule-card {
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .rule-card h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .info-box {
+            background: #e0f2fe;
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+
+        .error-box {
+            background: #ffe4e6;
+            border-left: 5px solid var(--danger);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+            color: #9f1239;
+        }
+
+        .hint-popup {
+            display: none;
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 15px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        /* Comparison Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .comparison-card {
+            background: #f8fafc;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .comparison-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .comparison-card .icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        /* Interactive Detective Tool */
+        .detective-box {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: var(--border-radius);
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .checkbox-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            border: 2px solid #cbd5e1;
+            font-weight: 600;
+        }
+
+        .checkbox-card input {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Quiz Styling */
+        .quiz-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .quiz-opt {
+            padding: 12px 20px;
+            background: #f8fafc;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .quiz-opt:hover {
+            background: #e2e8f0;
+        }
+
+        .quiz-opt.correct {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+
+        .quiz-opt.wrong {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+
+        /* Formula Display */
+        .formula-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .formula-item {
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 10px 20px;
+            border-radius: 30px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cheat Sheet */
+        .cheatsheet {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+        }
+
+        .cheatsheet h2 { color: #38bdf8; border-color: #334155; }
+        .cheatsheet .grid-2 { gap: 20px; }
+        .cheatsheet-card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8rem; }
+            .formula-box { font-size: 1rem; }
+            .btn { width: 100%; justify-content: center; }
+            .controls-bar { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>📐 Релација на еквивалентност и подредување</h1>
+        <p>Интерактивен дигитален час по математика</p>
+    </header>
+
+    <!-- SECTION 1: INTRODUCTION -->
+    <section id="intro">
+        <h2><span>1.</span> Што е тоа релација?</h2>
+        <p>Релација меѓу елементите на едно множество е правило со кое одредени елементи се поврзуваат помеѓу себе.</p>
+        <p style="margin-top: 10px;">Дадено е множеството: <b>A = {1, 2, 3}</b> и релацијата: <b>R = {(1,1), (2,2), (3,3), (1,2), (2,1)}</b></p>
+        
+        <p style="margin: 15px 0;">Изберете начин за приказ на релацијата:</p>
+        <div class="controls-bar">
+            <button class="btn" onclick="showIntroView('pairs')">📋 Парови</button>
+            <button class="btn btn-outline" onclick="showIntroView('matrix')">📊 Матрица</button>
+            <button class="btn btn-outline" onclick="showIntroView('diagram')">🎯 Дијаграм</button>
+        </div>
+
+        <div class="view-panel" id="intro-panel">
+            <!-- Dynamic Content Load -->
+        </div>
+    </section>
+
+    <!-- SECTION 2: REFLEXIVE -->
+    <section id="reflexive">
+        <h2><span>🔁</span> Рефлексивна релација</h2>
+        <div class="info-box">
+            <b>Математичко правило:</b> За секое x ∈ A мора да важи <b>(x, x) ∈ R</b> (xRx).<br>
+            <i>Едноставно кажано: Секој елемент мора да има "јамка" (стрелка) кон самиот себе!</i>
+        </div>
+
+        <div class="grid-2">
+            <div class="rule-card">
+                <h3>✅ Пример за рефлексивност</h3>
+                <p>A = {1, 2, 3}</p>
+                <svg class="diagram" viewBox="0 0 300 200">
+                    <defs>
+                        <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <!-- Nodes -->
+                    <circle cx="60" cy="140" r="20" class="node"/>
+                    <text x="60" y="140" class="node-text">1</text>
+                    
+                    <circle cx="240" cy="140" r="20" class="node"/>
+                    <text x="240" y="140" class="node-text">2</text>
+                    
+                    <circle cx="150" cy="40" r="20" class="node"/>
+                    <text x="150" y="40" class="node-text">3</text>
+
+                    <!-- Self loops -->
+                    <path d="M 50 125 A 15 15 0 1 1 75 125" class="arrow-line active" marker-end="url(#arrow)"/>
+                    <path d="M 225 125 A 15 15 0 1 1 250 125" class="arrow-line active" marker-end="url(#arrow)"/>
+                    <path d="M 135 25 A 15 15 0 1 1 165 25" class="arrow-line active" marker-end="url(#arrow)"/>
+                </svg>
+                <p><b>Сите елементи (1, 2 и 3) имаат сопствена петелка.</b></p>
+            </div>
+
+            <div class="rule-card">
+                <h3>❌ Контрапример (Не е рефлексивна)</h3>
+                <p>A = {1, 2, 3} | Недостасува (2,2)</p>
+                <svg class="diagram" viewBox="0 0 300 200">
+                    <circle cx="60" cy="140" r="20" class="node"/>
+                    <text x="60" y="140" class="node-text">1</text>
+                    
+                    <circle cx="240" cy="140" r="20" class="node" style="stroke: var(--danger);"/>
+                    <text x="240" y="140" class="node-text">2</text>
+                    
+                    <circle cx="150" cy="40" r="20" class="node"/>
+                    <text x="150" y="40" class="node-text">3</text>
+
+                    <path d="M 50 125 A 15 15 0 1 1 75 125" class="arrow-line active" marker-end="url(#arrow)"/>
+                    <path d="M 135 25 A 15 15 0 1 1 165 25" class="arrow-line active" marker-end="url(#arrow)"/>
+                </svg>
+                <p class="error-box"><b>❌ Елементот 2 ја нема парот (2,2)!</b></p>
+            </div>
+        </div>
+
+        <button class="btn btn-hint" style="margin-top: 15px;" onclick="toggleHint('hint-refl')">👀 Што треба да барам?</button>
+        <div id="hint-refl" class="hint-popup">
+            <b>Совет за брза проверка:</b> Во матрицата на релацијата, провери ја <b>главната дијагонала</b>. За да биде рефлексивна, сите полиња на главната дијагонала (1,1), (2,2), (3,3)... мора да содржат <b>1</b> (или "✅").
+        </div>
+    </section>
+
+    <!-- SECTION 3: SYMMETRIC -->
+    <section id="symmetric">
+        <h2><span>↔️</span> Симетрична релација</h2>
+        <div class="info-box">
+            <b>Математичко правило:</b> Ако (x, y) ∈ R, тогаш мора и <b>(y, x) ∈ R</b>.<br>
+            <i>Едноставно кажано: Ако има стрелка во една насока, мора да има и повратна стрелка!</i>
+        </div>
+
+        <div class="grid-2">
+            <div class="rule-card">
+                <h3>✅ Симетрична врска</h3>
+                <svg class="diagram" viewBox="0 0 300 150">
+                    <circle cx="70" cy="75" r="20" class="node"/>
+                    <text x="70" y="75" class="node-text">1</text>
+                    <circle cx="230" cy="75" r="20" class="node"/>
+                    <text x="230" y="75" class="node-text">2</text>
+
+                    <path d="M 90 60 Q 150 30 210 60" class="arrow-line active" marker-end="url(#arrow)"/>
+                    <path d="M 210 90 Q 150 120 90 90" class="arrow-line active" stroke="#50e3c2" marker-end="url(#arrow)"/>
+                </svg>
+                <p>Имаме (1,2) и веднаш се враќа (2,1).</p>
+            </div>
+
+            <div class="rule-card">
+                <h3>❌ Несиметрична врска</h3>
+                <svg class="diagram" viewBox="0 0 300 150">
+                    <circle cx="70" cy="75" r="20" class="node"/>
+                    <text x="70" y="75" class="node-text">1</text>
+                    <circle cx="230" cy="75" r="20" class="node"/>
+                    <text x="230" y="75" class="node-text">2</text>
+
+                    <path d="M 90 60 Q 150 30 210 60" class="arrow-line active" marker-end="url(#arrow)"/>
+                    <path d="M 210 90 Q 150 120 90 90" class="arrow-line highlight"/>
+                </svg>
+                <p class="error-box">Постои (1,2), но <b>недостасува (2,1)</b>!</p>
+            </div>
+        </div>
+
+        <button class="btn btn-hint" style="margin-top: 15px;" onclick="toggleHint('hint-sym')">👀 Што треба да барам?</button>
+        <div id="hint-sym" class="hint-popup">
+            <b>Огледално правило:</b> Во матрицата, полињата треба да бидат „огледални“ во однос на главната дијагонала. Ако полето (1,2) е во релација, мора и полето (2,1) да е во релација.
+        </div>
+    </section>
+
+    <!-- SECTION 4: ANTISYMMETRIC -->
+    <section id="antisymmetric">
+        <h2><span>🚫↔️</span> Антисиметрична релација</h2>
+        <div class="info-box">
+            <b>Математичко правило:</b> Ако (x, y) ∈ R и (y, x) ∈ R, тогаш мора <b>x = y</b>.<br>
+            <i>Едноставно кажано: За два Различни елементи НЕ СМЕЕ да има двонасочни стрелки!</i>
+        </div>
+
+        <div class="grid-2">
+            <div class="rule-card">
+                <h3>✅ Дозволено кај антисиметричност</h3>
+                <p>1 → 2 (еднонасочно) ИЛИ 1 → 1 (петелка)</p>
+                <svg class="diagram" viewBox="0 0 300 150">
+                    <circle cx="70" cy="75" r="20" class="node"/>
+                    <text x="70" y="75" class="node-text">1</text>
+                    <circle cx="230" cy="75" r="20" class="node"/>
+                    <text x="230" y="75" class="node-text">2</text>
+
+                    <path d="M 90 75 L 210 75" class="arrow-line active" marker-end="url(#arrow)"/>
+                    <path d="M 55 60 A 15 15 0 1 1 80 60" class="arrow-line active" marker-end="url(#arrow)"/>
+                </svg>
+                <p>Петелките (1,1) НЕ ја нарушуваат антисиметричноста!</p>
+            </div>
+
+            <div class="rule-card">
+                <h3>❌ Нарушување на антисиметричност</h3>
+                <svg class="diagram" viewBox="0 0 300 150">
+                    <circle cx="70" cy="75" r="20" class="node"/>
+                    <text x="70" y="75" class="node-text">1</text>
+                    <circle cx="230" cy="75" r="20" class="node"/>
+                    <text x="230" y="75" class="node-text">2</text>
+
+                    <path d="M 90 60 Q 150 30 210 60" class="arrow-line highlight"/>
+                    <path d="M 210 90 Q 150 120 90 90" class="arrow-line highlight"/>
+                </svg>
+                <p class="error-box">За 1 ≠ 2 постојат и (1,2) и (2,1). Ова го крши правилото!</p>
+            </div>
+        </div>
+
+        <button class="btn btn-hint" style="margin-top: 15px;" onclick="toggleHint('hint-antisym')">⚠️ Најчеста грешка</button>
+        <div id="hint-antisym" class="hint-popup">
+            <b>Внимание!</b> „Антисиметрична“ НЕ значи исто што и „несиметрична“. Една релација може да биде и двете, или ниту едното! Најважно: јамките (x,x) се ДОЗВОЛЕНИ во антисиметрични релации.
+        </div>
+    </section>
+
+    <!-- SECTION 5: TRANSITIVE -->
+    <section id="transitive">
+        <h2><span>🔗</span> Транзитивна релација</h2>
+        <div class="info-box">
+            <b>Математичко правило:</b> Ако (x, y) ∈ R и (y, z) ∈ R, тогаш мора и <b>(x, z) ∈ R</b>.<br>
+            <i>Едноставно кажано: Ако можеш да стигнеш од A до C преку B, мора да има и директен пат од A до C!</i>
+        </div>
+
+        <div class="rule-card">
+            <h3>Визуелизација на транзитивност</h3>
+            <svg class="diagram" viewBox="0 0 400 180" style="max-width: 500px;">
+                <circle cx="60" cy="130" r="20" class="node"/>
+                <text x="60" y="130" class="node-text">1</text>
+                
+                <circle cx="200" cy="40" r="20" class="node"/>
+                <text x="200" y="40" class="node-text">2</text>
+                
+                <circle cx="340" cy="130" r="20" class="node"/>
+                <text x="340" y="130" class="node-text">3</text>
+
+                <!-- 1 -> 2 -->
+                <path d="M 75 115 L 185 55" class="arrow-line active" marker-end="url(#arrow)"/>
+                <!-- 2 -> 3 -->
+                <path d="M 215 55 L 325 115" class="arrow-line active" marker-end="url(#arrow)"/>
+                <!-- 1 -> 3 (Required) -->
+                <path d="M 80 130 L 320 130" class="arrow-line" stroke="#22c55e" stroke-width="4" stroke-dasharray="4" marker-end="url(#arrow)"/>
+            </svg>
+            <p>1 → 2 и 2 → 3 бараат постоење на <b>директната зелена стрелка 1 → 3</b>.</p>
+        </div>
+
+        <button class="btn btn-hint" style="margin-top: 15px;" onclick="toggleHint('hint-trans')">👀 Што треба да барам?</button>
+        <div id="hint-trans" class="hint-popup">
+            <b>Барај двојни чекори:</b> Секогаш кога ќе најдеш синџир од две стрелки (A → B → C), задолжително провери дали го имаш затворањето на триаголникот (A → C).
+        </div>
+    </section>
+
+    <!-- SECTION 6: EQUIVALENCE VS ORDERING -->
+    <section id="comparison">
+        <h2><span>⚖️</span> Еквивалентност vs Подредување</h2>
+        <p>Сите релации се градат со комбинирање на основните својства:</p>
+
+        <div class="formula-box">
+            <span class="formula-item">ЕКВИВАЛЕНТНОСТ</span>
+            <span>=</span>
+            <span>Рефлексивна (Р)</span>
+            <span>+</span>
+            <span style="color: #059669; background: #d1fae5;" class="formula-item">Симетрична (С)</span>
+            <span>+</span>
+            <span>Транзитивна (Т)</span>
+            <span style="background: #fef08a; color: #854d0e;" class="formula-item">👉 "Р С Т"</span>
+        </div>
+
+        <div class="formula-box">
+            <span class="formula-item" style="background: #fce7f3; color: #be185d;">ПОДРЕДУВАЊЕ</span>
+            <span>=</span>
+            <span>Рефлексивна (Р)</span>
+            <span>+</span>
+            <span style="color: #dc2626; background: #fee2e2;" class="formula-item">Антисиметрична (А)</span>
+            <span>+</span>
+            <span>Транзитивна (Т)</span>
+            <span style="background: #fef08a; color: #854d0e;" class="formula-item">👉 "Р А Т"</span>
+        </div>
+
+        <table class="matrix-table" style="width: 100%; margin-top: 20px;">
+            <thead>
+                <tr style="background: #f1f5f9;">
+                    <th>Својство</th>
+                    <th>Еквивалентност</th>
+                    <th>Подредување</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Рефлексивна</td>
+                    <td>✅ Задолжително</td>
+                    <td>✅ Задолжително</td>
+                </tr>
+                <tr>
+                    <td><b>Симетрична</b></td>
+                    <td style="background: #d1fae5;">✅ ДА</td>
+                    <td style="background: #fee2e2;">❌ НЕ</td>
+                </tr>
+                <tr>
+                    <td><b>Антисиметрична</b></td>
+                    <td style="background: #fee2e2;">❌ НЕ</td>
+                    <td style="background: #d1fae5;">✅ ДА</td>
+                </tr>
+                <tr>
+                    <td>Транзитивна</td>
+                    <td>✅ Задолжително</td>
+                    <td>✅ Задолжително</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- SECTION 7: DETECTIVE GAME -->
+    <section id="detective">
+        <h2><span>🕵️‍♂️</span> Детектив за релации</h2>
+        <div class="detective-box">
+            <p><b>Анализирај ја следната релација:</b></p>
+            <p>A = {1, 2, 3}</p>
+            <p><b>R = {(1,1), (2,2), (3,3), (1,2), (2,1)}</b></p>
+
+            <div class="checkbox-group">
+                <label class="checkbox-card">
+                    <input type="checkbox" id="chk-refl"> Рефлексивна
+                </label>
+                <label class="checkbox-card">
+                    <input type="checkbox" id="chk-sym"> Симетрична
+                </label>
+                <label class="checkbox-card">
+                    <input type="checkbox" id="chk-antisym"> Антисиметрична
+                </label>
+                <label class="checkbox-card">
+                    <input type="checkbox" id="chk-trans"> Транзитивна
+                </label>
+            </div>
+
+            <button class="btn" onclick="checkDetective()">Провери ги твоите одговори</button>
+            <div id="detective-result" style="margin-top: 15px;"></div>
+        </div>
+    </section>
+
+    <!-- SECTION 8: QUIZ -->
+    <section id="quiz">
+        <h2><span>🧩</span> Мини Квиз (8 Задачи)</h2>
+        <div id="quiz-container">
+            <!-- Quiz questions generated by JS -->
+        </div>
+    </section>
+
+    <!-- SECTION 9: CHEAT SHEET -->
+    <section class="cheatsheet">
+        <h2><span>⭐</span> Брз потсетник (Резиме)</h2>
+        <div class="grid-2">
+            <div class="cheatsheet-card">
+                <h3 style="color: #38bdf8;">🔁 Рефлексивност</h3>
+                <p>„Секој со себе“: Сите (x,x) постојат.</p>
+            </div>
+            <div class="cheatsheet-card">
+                <h3 style="color: #34d399;">↔️ Симетричност</h3>
+                <p>„Двонасочна улица“: Ако има A→B, мора B→A.</p>
+            </div>
+            <div class="cheatsheet-card">
+                <h3 style="color: #f43f5e;">🚫↔️ Антисиметричност</h3>
+                <p>„Еднонасочна улица“: Нема повратни за различни елементи.</p>
+            </div>
+            <div class="cheatsheet-card">
+                <h3 style="color: #fbbf24;">🔗 Транзитивност</h3>
+                <p>„Краток пат“: Ако A→B и B→C, мора A→C.</p>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 25px; font-size: 1.2rem;">
+            <b>Главна разлика:</b><br>
+            Еквивалентност = <b>РСТ</b> (Симетрична) | Подредување = <b>РАТ</b> (Антисиметрична)
+        </div>
+    </section>
+
+    <script>
+        // Intro Interactive Switcher
+        function showIntroView(view) {
+            const panel = document.getElementById('intro-panel');
+            if (view === 'pairs') {
+                panel.innerHTML = `
+                    <div class="pairs-list">
+                        R = { (1,1), (2,2), (3,3), (1,2), (2,1) }
+                    </div>`;
+            } else if (view === 'matrix') {
+                panel.innerHTML = `
+                    <table class="matrix-table">
+                        <tr><th>R</th><th>1</th><th>2</th><th>3</th></tr>
+                        <tr><th>1</th><td class="active highlight-diag">1</td><td class="active">1</td><td>0</td></tr>
+                        <tr><th>2</th><td class="active">1</td><td class="active highlight-diag">1</td><td>0</td></tr>
+                        <tr><th>3</th><td>0</td><td>0</td><td class="active highlight-diag">1</td></tr>
+                    </table>`;
+            } else if (view === 'diagram') {
+                panel.innerHTML = `
+                    <svg class="diagram" viewBox="0 0 300 200">
+                        <circle cx="60" cy="140" r="20" class="node"/><text x="60" y="140" class="node-text">1</text>
+                        <circle cx="240" cy="140" r="20" class="node"/><text x="240" y="140" class="node-text">2</text>
+                        <circle cx="150" cy="40" r="20" class="node"/><text x="150" y="40" class="node-text">3</text>
+                        <!-- Loops -->
+                        <path d="M 50 125 A 15 15 0 1 1 75 125" class="arrow-line active"/>
+                        <path d="M 225 125 A 15 15 0 1 1 250 125" class="arrow-line active"/>
+                        <path d="M 135 25 A 15 15 0 1 1 165 25" class="arrow-line active"/>
+                        <!-- 1<->2 -->
+                        <path d="M 80 130 Q 150 110 220 130" class="arrow-line active"/>
+                        <path d="M 220 150 Q 150 170 80 150" class="arrow-line active"/>
+                    </svg>`;
+            }
+        }
+
+        // Toggle Hint Popups
+        function toggleHint(id) {
+            const el = document.getElementById(id);
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // Detective Check
+        function checkDetective() {
+            const refl = document.getElementById('chk-refl').checked;
+            const sym = document.getElementById('chk-sym').checked;
+            const antisym = document.getElementById('chk-antisym').checked;
+            const trans = document.getElementById('chk-trans').checked;
+
+            const res = document.getElementById('detective-result');
+            let html = '';
+
+            if (refl && sym && !antisym && trans) {
+                html = `<div class="info-box" style="background:#dcfce7; border-color:#22c55e; color:#15803d;">
+                    <b>🎯 ТОЧНО!</b><br>
+                    - ✅ <b>Рефлексивна:</b> Ги содржи (1,1), (2,2), (3,3).<br>
+                    - ✅ <b>Симетрична:</b> Го има (1,2) и неговиот обратен (2,1).<br>
+                    - ❌ <b>Не е антисиметрична:</b> Зашто 1≠2, а ги има и (1,2) и (2,1).<br>
+                    - ✅ <b>Транзитивна:</b> Сите комбинации го исполнуваат условот.<br>
+                    <b>Заклучок: Ова е релација на ЕКВИВАЛЕНТНОСТ!</b>
+                </div>`;
+            } else {
+                html = `<div class="error-box">
+                    <b>❌ Имаш грешка. Размисли повторно:</b><br>
+                    - Провери дали ги има сите сопствени парови (x,x)? (Рефлексивна)<br>
+                    - Има ли повратни стрелки за секој пар? (Симетрична)<br>
+                    - Дали смее да има двонасочни стрелки кај антисиметрична?
+                </div>`;
+            }
+            res.innerHTML = html;
+        }
+
+        // Quiz Generator
+        const quizData = [
+            {
+                q: "1. Ако релацијата ги содржи (1,1), (2,2), (3,3) на множество A={1,2,3}, таа е задолжително:",
+                opts: ["Симетрична", "Рефлексивна", "Антисиметрична"],
+                ans: 1,
+                exp: "Рефлексивна значи секој елемент да содржи патека до самиот себе."
+            },
+            {
+                q: "2. Формулата за Еквивалентност е:",
+                opts: ["Р + А + Т", "Р + С + Т", "С + А + Т"],
+                ans: 1,
+                exp: "Еквивалентноста бара Рефлексивност, Симетричност и Транзитивност (РСТ)."
+            },
+            {
+                q: "3. Формулата за Подредување (Ordering) е:",
+                opts: ["Р + А + Т", "Р + С + Т", "А + С + Т"],
+                ans: 0,
+                exp: "Подредувањето бара Рефлексивност, Антисиметричност и Транзитивност (РАТ)."
+            },
+            {
+                q: "4. Дали парот (1,1) ја нарушува АНТИСИМЕТРИЧНОСТА?",
+                opts: ["Да", "Не"],
+                ans: 1,
+                exp: "Не! Јамките (x,x) се дозволени кај антисиметричност бидејќи тука x = y."
+            },
+            {
+                q: "5. Ако имаме (1,2) и (2,3), која стрелка недостасува за релацијата да биде ТРАНЗИТИВНА?",
+                opts: ["(2,1)", "(3,1)", "(1,3)"],
+                ans: 2,
+                exp: "Транзитивност: од почетокот (1) до крајот (3) -> (1,3)."
+            },
+            {
+                q: "6. Ако во матрицата ги имаме и (1,2) и (2,1) за различни елементи, релацијата НЕ МОЖЕ да биде:",
+                opts: ["Симетрична", "Антисиметрична", "Рефлексивна"],
+                ans: 1,
+                exp: "Антисиметричноста забранува двонасочни стрелки меѓу различни елементи."
+            },
+            {
+                q: "7. Релацијата R = {(1,1), (2,2)} на множество A={1,2,3} е рефлексивна?",
+                opts: ["Точно", "Неточно"],
+                ans: 1,
+                exp: "Неточно! Недостасува парот (3,3) за сите елементи од A да бидат опфатени."
+            },
+            {
+                q: "8. Која е главната разлика меѓу Еквивалентност и Подредување?",
+                opts: ["Еквивалентност = Симетрична, Подредување = Антисиметрична", "Нема разлика", "Еквивалентноста не е транзитивна"],
+                ans: 0,
+                exp: "Точно! Ова е единствената суштинска разлика меѓу нив."
+            }
+        ];
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = quizData.map((item, idx) => `
+                <div class="quiz-card">
+                    <p><b>${item.q}</b></p>
+                    <div class="quiz-options">
+                        ${item.opts.map((opt, oIdx) => `
+                            <button class="quiz-opt" onclick="checkQuiz(${idx}, ${oIdx}, this)">${opt}</button>
+                        `).join('')}
+                    </div>
+                    <div id="quiz-exp-${idx}" style="margin-top:10px; display:none;"></div>
+                </div>
+            `).join('');
+        }
+
+        function checkQuiz(qIdx, selectedOpt, btnEl) {
+            const q = quizData[qIdx];
+            const parent = btnEl.parentElement;
+            const buttons = parent.querySelectorAll('.quiz-opt');
+            
+            buttons.forEach(b => b.disabled = true);
+
+            const expEl = document.getElementById(`quiz-exp-${qIdx}`);
+            expEl.style.display = 'block';
+
+            if (selectedOpt === q.ans) {
+                btnEl.classList.add('correct');
+                expEl.innerHTML = `<span style="color:#15803d;">✅ Точно! ${q.exp}</span>`;
+            } else {
+                btnEl.classList.add('wrong');
+                buttons[q.ans].classList.add('correct');
+                expEl.innerHTML = `<span style="color:#b91c1c;">❌ Грешка. ${q.exp}</span>`;
+            }
+        }
+
+        // Initial Load
+        window.onload = () => {
+            showIntroView('pairs');
+            renderQuiz();
+        };
+    </script>
+</body>
+</html>
