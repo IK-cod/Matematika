@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="mk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Изометрија и проекции</title>
+<style>
+:root{
+  --bg:#f4f6fa; --card:#ffffff; --ink:#1d2433; --muted:#667085; --line:#d5dbe6;
+  --accent:#2563eb; --accent2:#e11d48;
+  --top:#9cc3ff; --left:#4f86e6; --right:#2f5fb8; --edge:#14213d;
+  --cell:#c9dcff; --cellEdge:#1d3a7a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+header{padding:14px 16px;background:var(--card);border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+h1{font-size:20px;margin:0 16px 0 0}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sep{width:1px;height:28px;background:var(--line);margin:0 6px}
+button{font:inherit;font-size:14px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 11px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+button.warn{color:var(--accent2)}
+main{display:grid;grid-template-columns:260px 1fr;gap:14px;padding:14px 16px}
+@media (max-width:860px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.card h2{font-size:15px;margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card h2 small{font-weight:400;color:var(--muted)}
+.views{display:grid;grid-template-columns:1.4fr 1fr;grid-template-rows:auto auto;gap:14px}
+.views .iso{grid-row:span 2}
+.views.three{grid-template-columns:repeat(3,1fr)}
+.views.three .iso{grid-row:auto}
+@media (max-width:860px){.views,.views.three{grid-template-columns:1fr}.views .iso{grid-row:auto}}
+.side2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:600px){.side2{grid-template-columns:1fr}}
+svg{width:100%;height:auto;display:block}
+.iso svg{max-height:62vh}
+.view svg{max-height:30vh}
+.hidden-box{min-height:150px;border:2px dashed var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;text-align:center;padding:12px;font-size:15px}
+.hidden-box:hover{border-color:var(--accent);color:var(--accent)}
+.iso .hidden-box{min-height:320px}
+.grid{display:grid;gap:4px;margin:6px 0 10px}
+.grid div{aspect-ratio:1;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;cursor:pointer;user-select:none;background:#fff}
+.grid div.f{background:var(--cell);border-color:var(--cellEdge)}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.45;margin:4px 0 8px}
+label.row{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:6px 0;gap:8px}
+select{font:inherit;padding:4px 6px;border-radius:6px;border:1px solid var(--line)}
+.legend{font-size:13px;color:var(--muted);margin-top:6px}
+.tag{display:inline-block;padding:1px 7px;border-radius:10px;color:#fff;font-weight:700;font-size:12px}
+.tagN{background:var(--accent2)}.tagP{background:#16a34a}
+.ed.hide{display:none}
+#drawbar{display:none;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px;padding:8px;background:#f7f9fc;border:1px solid var(--line);border-radius:10px}
+#drawbar.show{display:flex}
+#drawbar button{padding:5px 9px}
+.sw{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.sw.on{box-shadow:0 0 0 3px var(--accent)}
+.iso.drawing svg{cursor:crosshair;touch-action:none}
+#drawbar label{font-size:13.5px;display:flex;gap:5px;align-items:center}
+@media print{header .bar,aside,.hidden-box{display:none!important} main{grid-template-columns:1fr} body{background:#fff}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Изометриски поглед и проекции</h1>
+  <div class="bar">
+    <button data-t="iso" class="on">Изометрија</button>
+    <button data-t="plan" class="on">План</button>
+    <button data-t="front" class="on">Нацрт</button>
+    <button data-t="side" class="on">Профил</button>
+    <span class="sep"></span>
+    <button id="showAll">Прикажи сè</button>
+    <button id="hideViews">Скриј ги проекциите</button>
+    <button id="quiz">Погоди ја фигурата</button>
+    <span class="sep"></span>
+    <button id="rnd">Нова случајна фигура</button>
+    <button id="rot">Ротирај 90°</button>
+    <button id="edToggle" class="on">Уредувач</button>
+    <span class="sep"></span>
+    <button id="drawBtn">✏️ Цртај</button>
+    <button id="drawTask">Нацртај ја по проекциите</button>
+  </div>
+</header>
+
+<main>
+  <aside class="card ed" id="editor">
+    <h2>Изгради фигура</h2>
+    <p class="hint">Секое поле е една колона коцки (поглед одозгора). <b>Клик</b> додава коцка, <b>десен клик</b> (или Shift + клик) одзема.<br>Долу е <span class="tag tagN">Н</span> напред, десно е <span class="tag tagP">П</span> страна.</p>
+    <div class="grid" id="grid"></div>
+    <label class="row">Големина на мрежата
+      <select id="size"><option>3</option><option selected>4</option><option>5</option><option>6</option></select>
+    </label>
+    <label class="row">Најголема висина
+      <select id="maxh"><option>3</option><option selected>4</option><option>5</option><option>6</option></select>
+    </label>
+    <label class="row">Број коцки во случајна фигура
+      <select id="cnt"><option value="0" selected>било колку</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>10</option><option>12</option></select>
+    </label>
+    <hr style="border:0;border-top:1px solid var(--line);margin:10px 0">
+    <label class="row">Стрелки за насоката <input type="checkbox" id="arrows" checked></label>
+    <label class="row">Броеви (висини) на планот <input type="checkbox" id="nums"></label>
+    <label class="row">Изометриска точкаста хартија <input type="checkbox" id="dots" checked></label>
+    <label class="row">Квадратна мрежа на проекциите <input type="checkbox" id="sq" checked></label>
+    <label class="row">Боја
+      <select id="col"><option value="b">сина</option><option value="o">портокалова</option><option value="g">зелена</option><option value="w">бела (за печатење)</option></select>
+    </label>
+    <div class="bar" style="margin-top:10px">
+      <button id="clear" class="warn">Избриши сè</button>
+      <button id="print">Печати</button>
+    </div>
+    <p class="hint" style="margin-top:10px">Фигурата се чува во адресата на страницата, па можеш да ја обележиш (bookmark) или да ја испратиш на ученик.</p>
+  </aside>
+
+  <section>
+    <div class="views" id="views">
+      <div class="card iso"><h2>Изометриски поглед <small id="count"></small></h2>
+        <div id="drawbar">
+          <button data-tool="cube">🧊 Коцка</button>
+          <button data-tool="line" class="on">Линија</button>
+          <button data-tool="fill">Пополни</button>
+          <button data-tool="erase">Гумичка</button>
+          <span class="sep"></span>
+          <span id="swatches" style="display:flex;gap:5px"></span>
+          <span class="sep"></span>
+          <button id="undo">↶ Врати</button>
+          <button id="wipe" class="warn">Избриши цртеж</button>
+          <label><input type="checkbox" id="hideCubes"> Празна хартија (скриј коцки)</label>
+        </div>
+        <div id="v-iso"></div></div>
+      <div class="card view"><h2>План <small>поглед одозгора</small></h2><div id="v-plan"></div></div>
+      <div class="side2">
+        <div class="card view"><h2>Нацрт <small>однапред <span class="tag tagN">Н</span></small></h2><div id="v-front"></div></div>
+        <div class="card view"><h2>Профил <small>одстрана <span class="tag tagP">П</span></small></h2><div id="v-side"></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const PAL={
+  b:{top:'#9cc3ff',left:'#4f86e6',right:'#2f5fb8',cell:'#c9dcff',edge:'#14213d'},
+  o:{top:'#ffd29a',left:'#f59e3b',right:'#c56d12',cell:'#ffe2bd',edge:'#3d2410'},
+  g:{top:'#a7e3b4',left:'#4cb86a',right:'#2d8748',cell:'#cdeed5',edge:'#123d1f'},
+  w:{top:'#ffffff',left:'#e4e4e4',right:'#bdbdbd',cell:'#ffffff',edge:'#000000'}
+};
+const S={n:4,maxH:4,h:null,show:{iso:true,plan:true,front:true,side:true},arrows:true,nums:false,dots:true,sq:true,col:'b',
+  drawOn:false,hideCubes:false,tool:'line',pen:'#14213d',drw:{lines:[],fills:{}},undo:[]};
+const PENS=['#14213d','#e11d48','#2563eb','#16a34a','#f59e0b','#9cc3ff','#4f86e6','#2f5fb8'];
+const NAMES={iso:'изометрискиот поглед',plan:'планот',front:'нацртот',side:'профилот'};
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+const empty=n=>Array.from({length:n},()=>Array(n).fill(0));
+
+function preset(){S.h=empty(S.n);const p=[[2,1,0,0],[3,1,1,0],[1,1,0,0],[0,0,0,0]];for(let i=0;i<4;i++)for(let j=0;j<4;j++)S.h[i][j]=p[i][j];}
+
+/* ---------- запишување во адресата ---------- */
+function save(){history.replaceState(null,'','#'+S.n+'-'+S.h.map(r=>r.join('')).join(''));}
+function load(){
+  const m=location.hash.match(/^#([3-6])-([0-9]+)$/);
+  if(!m||m[2].length!==m[1]*m[1])return false;
+  S.n=+m[1];S.h=empty(S.n);
+  for(let i=0;i<S.n*S.n;i++)S.h[Math.floor(i/S.n)][i%S.n]=+m[2][i];
+  S.maxH=Math.max(S.maxH,...m[2].split('').map(Number));if(S.maxH>6)S.maxH=6;
+  return true;
+}
+
+/* ---------- SVG помошни ---------- */
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function svgWrap(minx,miny,w,h){return el('svg',{viewBox:`${minx} ${miny} ${w} ${h}`,preserveAspectRatio:'xMidYMid meet'});}
+
+/* ---------- изометрија ----------
+   x оди кон „напред“ (Н), y кон „десно“ (П), z нагоре */
+const C=Math.cos(Math.PI/6);
+const P=(x,y,z)=>[(y-x)*C,(x+y)*0.5-z];
+const has=(x,y,z)=>x>=0&&y>=0&&x<S.n&&y<S.n&&z>=0&&z<S.h[x][y];
+
+function arrow(g,a,b,color,label){
+  const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,hs=0.28;
+  el('line',{x1:a[0],y1:a[1],x2:b[0]-ux*hs,y2:b[1]-uy*hs,stroke:color,'stroke-width':0.09,'stroke-linecap':'round'},g);
+  const px=-uy,py=ux;
+  el('polygon',{points:`${b[0]},${b[1]} ${b[0]-ux*hs*1.6+px*hs*0.75},${b[1]-uy*hs*1.6+py*hs*0.75} ${b[0]-ux*hs*1.6-px*hs*0.75},${b[1]-uy*hs*1.6-py*hs*0.75}`,fill:color},g);
+  const lx=a[0]-ux*0.42,ly=a[1]-uy*0.42;
+  el('circle',{cx:lx,cy:ly,r:0.34,fill:color},g);
+  const t=el('text',{x:lx,y:ly+0.13,'text-anchor':'middle','font-size':0.4,'font-weight':700,fill:'#fff','font-family':'system-ui,Arial'},g);t.textContent=label;
+}
+
+function drawIso(){
+  const n=S.n,pal=PAL[S.col];
+  let maxZ=Math.max(1,...S.h.flat());
+  // граници
+  const pts=[P(0,0,0),P(n,0,0),P(0,n,0),P(n,n,0),P(0,0,maxZ),P(n,0,maxZ),P(0,n,maxZ)];
+  if(S.arrows){pts.push(P(n+2.4,n/2,0),P(n/2,n+2.4,0));}
+  if(S.drawOn||S.hideCubes||S.drw.lines.length||Object.keys(S.drw.fills).length){pts.push(P(-1.5,-1.5,0),P(n+3,n+3,0),P(n+3,-1.5,0),P(-1.5,n+3,0),P(-1.5,-1.5,maxZ+1));}
+  let minx=Math.min(...pts.map(p=>p[0]))-0.6,maxx=Math.max(...pts.map(p=>p[0]))+0.6;
+  let miny=Math.min(...pts.map(p=>p[1]))-0.6,maxy=Math.max(...pts.map(p=>p[1]))+0.6;
+  const svg=svgWrap(minx,miny,maxx-minx,maxy-miny);
+  // точкаста хартија
+  if(S.dots||S.drawOn){
+    const g=el('g',{fill:S.drawOn?'#8d99ae':'#b8c2d3'},svg);
+    for(let a=-n-12;a<2*n+14;a++)for(let b=-n-12;b<2*n+14;b++){
+      const p=P(a,b,0);
+      if(p[0]>minx&&p[0]<maxx&&p[1]>miny&&p[1]<maxy)el('circle',{cx:p[0],cy:p[1],r:0.045},g);
+    }
+  }
+  // сенка/основа
+  const base=[P(0,0,0),P(n,0,0),P(n,n,0),P(0,n,0)].map(p=>p.join(',')).join(' ');
+  if(!S.hideCubes)el('polygon',{points:base,fill:'none',stroke:'#cfd6e3','stroke-width':0.03,'stroke-dasharray':'0.12 0.1'},svg);
+  // коцки по редослед на сликарот
+  const cubes=[];
+  for(let x=0;x<n;x++)for(let y=0;y<n;y++)for(let z=0;z<S.h[x][y];z++)cubes.push([x,y,z]);
+  const nCubes=cubes.length;if(S.hideCubes)cubes.length=0;
+  cubes.sort((a,b)=>(a[0]+a[1]+a[2])-(b[0]+b[1]+b[2])||a[2]-b[2]);
+  const g=el('g',{stroke:pal.edge,'stroke-width':0.045,'stroke-linejoin':'round'},svg);
+  FACES.length=0;
+  const face=(arr,fill,info)=>{const sp=arr.map(p=>P(...p));FACES.push({sp,...info});return el('polygon',{points:sp.map(p=>p.join(',')).join(' '),fill},g);};
+  for(const [x,y,z] of cubes){
+    if(!has(x,y,z+1))face([[x,y,z+1],[x+1,y,z+1],[x+1,y+1,z+1],[x,y+1,z+1]],pal.top,{x,y,z,k:'top'});
+    if(!has(x+1,y,z))face([[x+1,y,z],[x+1,y+1,z],[x+1,y+1,z+1],[x+1,y,z+1]],pal.left,{x,y,z,k:'px'});
+    if(!has(x,y+1,z))face([[x,y+1,z],[x+1,y+1,z],[x+1,y+1,z+1],[x,y+1,z+1]],pal.right,{x,y,z,k:'py'});
+  }
+  if(S.arrows&&!S.hideCubes){
+    const ga=el('g',{},svg);
+    arrow(ga,P(n+2.0,n/2,0),P(n+0.35,n/2,0),'#e11d48','Н');
+    arrow(ga,P(n/2,n+2.0,0),P(n/2,n+0.35,0),'#16a34a','П');
+  }
+  drawLayer(svg);
+  $('count').textContent=S.hideCubes?'':nCubes+' '+(nCubes===1?'коцка':'коцки');
+  return svg;
+}
+
+/* ---------- 2D проекции ---------- */
+function grid2d(cols,rows,cells,opts={}){
+  const pad=0.35,extraB=opts.arrowBottom?2.1:0,extraR=opts.arrowRight?2.1:0,pal=PAL[S.col];
+  const svg=svgWrap(-pad,-pad,cols+2*pad+extraR,rows+2*pad+extraB);
+  if(S.sq){
+    const g=el('g',{stroke:'#e2e7ef','stroke-width':0.025},svg);
+    for(let i=0;i<=cols;i++)el('line',{x1:i,y1:0,x2:i,y2:rows},g);
+    for(let j=0;j<=rows;j++)el('line',{x1:0,y1:j,x2:cols,y2:j},g);
+  }
+  const g=el('g',{stroke:pal.edge,'stroke-width':0.05,fill:pal.cell},svg);
+  for(const c of cells){
+    el('rect',{x:c.c,y:c.r,width:1,height:1},g);
+    if(c.label!==undefined){const t=el('text',{x:c.c+0.5,y:c.r+0.66,'text-anchor':'middle','font-size':0.46,'font-weight':700,fill:pal.edge,stroke:'none','font-family':'system-ui,Arial'},g);t.textContent=c.label;}
+  }
+  if(opts.ground)el('line',{x1:-0.25,y1:rows,x2:cols+0.25,y2:rows,stroke:'#98a2b3','stroke-width':0.05},svg);
+  if(S.arrows&&opts.arrowBottom)arrow(svg,[cols/2,rows+1.25],[cols/2,rows+0.2],'#e11d48','Н');
+  if(S.arrows&&opts.arrowRight)arrow(svg,[cols+1.25,rows/2],[cols+0.2,rows/2],'#16a34a','П');
+  return svg;
+}
+function drawPlan(){
+  const n=S.n,cells=[];
+  for(let x=0;x<n;x++)for(let y=0;y<n;y++)if(S.h[x][y]>0)cells.push({r:x,c:y,label:S.nums?S.h[x][y]:undefined});
+  return grid2d(n,n,cells,{arrowBottom:true,arrowRight:true});
+}
+function colH(){return Math.max(1,...S.h.flat());}
+function drawFront(){ // гледаме од +x кон -x: лево->десно е y
+  const n=S.n,H=colH(),cells=[];
+  for(let y=0;y<n;y++){let m=0;for(let x=0;x<n;x++)m=Math.max(m,S.h[x][y]);for(let k=0;k<m;k++)cells.push({c:y,r:H-1-k});}
+  return grid2d(n,H,cells,{ground:true});
+}
+function drawSide(){ // гледаме од +y кон -y: лево->десно е x опаѓачки
+  const n=S.n,H=colH(),cells=[];
+  for(let x=0;x<n;x++){let m=0;for(let y=0;y<n;y++)m=Math.max(m,S.h[x][y]);for(let k=0;k<m;k++)cells.push({c:n-1-x,r:H-1-k});}
+  return grid2d(n,H,cells,{ground:true});
+}
+
+/* ---------- цртање на изометриска хартија ----------
+   Точките на хартијата се P(a,b,0) за цели a,b. Триаголниците се
+   во квадратот [a,a+1]x[b,b+1] поделен по дијагоналата b-a=const. */
+const L=(a,b)=>P(a,b,0);
+const FACES=[];
+function inPoly(p,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];if((yi>p[1])!==(yj>p[1])&&p[0]<(xj-xi)*(p[1]-yi)/(yj-yi)+xi)c=!c;}return c;}
+function hitFace(sp){for(let i=FACES.length-1;i>=0;i--)if(inPoly(sp,FACES[i].sp))return FACES[i];return null;}
+function cubeClick(sp,remove){
+  const f=hitFace(sp),n=S.n,ok=(x,y)=>x>=0&&y>=0&&x<n&&y<n;
+  if(remove){if(f){S.h[f.x][f.y]=Math.max(0,S.h[f.x][f.y]-1);render();}return;}
+  let tx,ty;
+  if(f){tx=f.x;ty=f.y;if(f.k==='px')tx++;if(f.k==='py')ty++;}
+  else{const [a,b]=toAB(...sp);tx=Math.floor(a);ty=Math.floor(b);}
+  if(!ok(tx,ty)){flash('Коцките можат да се ставаат само во мрежата '+n+'×'+n+' (испрекинатата основа). Мрежата се зголемува во Уредувачот.');return;}
+  if(S.h[tx][ty]>=S.maxH){flash('Најголемата висина е '+S.maxH+'. Може да се смени во Уредувачот.');return;}
+  S.h[tx][ty]++;render();
+}
+function flash(msg){let t=$('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1d2433;color:#fff;padding:10px 14px;border-radius:10px;font-size:14px;max-width:90vw;z-index:9';document.body.appendChild(t);}t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',3500);}
+function toAB(sx,sy){const u=sx/C,v=2*sy;return [(v-u)/2,(v+u)/2];}
+function svgPt(svg,e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const q=pt.matrixTransform(svg.getScreenCTM().inverse());return [q.x,q.y];}
+function triOf(a,b){const ia=Math.floor(a),ib=Math.floor(b);return [ia,ib,(b-ib)>(a-ia)?1:0];}
+function triPts(ia,ib,t){const v=t?[[ia,ib],[ia,ib+1],[ia+1,ib+1]]:[[ia,ib],[ia+1,ib],[ia+1,ib+1]];return v.map(([a,b])=>L(a,b).join(',')).join(' ');}
+function pushUndo(){S.undo.push(JSON.stringify(S.drw));if(S.undo.length>100)S.undo.shift();}
+function distSeg(p,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy||1)));return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy);}
+function drawLayer(svg){
+  const gf=el('g',{stroke:'#14213d','stroke-width':0.02,'stroke-linejoin':'round'},svg);
+  for(const k in S.drw.fills){const [a,b,t]=k.split(',').map(Number);el('polygon',{points:triPts(a,b,t),fill:S.drw.fills[k],stroke:S.drw.fills[k]},gf);}
+  const gl=el('g',{'stroke-width':0.07,'stroke-linecap':'round'},svg);
+  for(const [a1,b1,a2,b2,c] of S.drw.lines){const p=L(a1,b1),q=L(a2,b2);el('line',{x1:p[0],y1:p[1],x2:q[0],y2:q[1],stroke:c},gl);}
+  if(!S.drawOn)return;
+  const prev=el('line',{stroke:S.pen,'stroke-width':0.07,'stroke-linecap':'round','stroke-dasharray':'0.15 0.1',opacity:0.8},svg);
+  const mark=el('circle',{r:0.11,fill:'none',stroke:S.pen,'stroke-width':0.04,opacity:0},svg);
+  let start=null;
+  const snap=e=>{const [a,b]=toAB(...svgPt(svg,e));return [Math.round(a),Math.round(b)];};
+  svg.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    const sp=svgPt(svg,e),[a,b]=toAB(...sp);
+    if(S.tool==='cube'){cubeClick(sp,e.button===2||e.shiftKey);return;}
+    if(S.tool==='line'){start=snap(e);svg.setPointerCapture(e.pointerId);const p=L(...start);prev.setAttribute('x1',p[0]);prev.setAttribute('y1',p[1]);prev.setAttribute('x2',p[0]);prev.setAttribute('y2',p[1]);}
+    else if(S.tool==='fill'){const k=triOf(a,b).join(',');pushUndo();if(S.drw.fills[k]===S.pen)delete S.drw.fills[k];else S.drw.fills[k]=S.pen;render();}
+    else if(S.tool==='erase'){
+      let best=-1,bd=0.18;S.drw.lines.forEach((l,i)=>{const d=distSeg(sp,L(l[0],l[1]),L(l[2],l[3]));if(d<bd){bd=d;best=i;}});
+      pushUndo();
+      if(best>=0)S.drw.lines.splice(best,1);
+      else{const k=triOf(a,b).join(',');if(S.drw.fills[k])delete S.drw.fills[k];else{S.undo.pop();return;}}
+      render();
+    }
+  });
+  svg.addEventListener('contextmenu',e=>e.preventDefault());
+  svg.addEventListener('pointermove',e=>{
+    const q=L(...snap(e));mark.setAttribute('cx',q[0]);mark.setAttribute('cy',q[1]);mark.setAttribute('opacity',S.tool==='line'?1:0);
+    if(start){prev.setAttribute('x2',q[0]);prev.setAttribute('y2',q[1]);}
+  });
+  svg.addEventListener('pointerleave',()=>mark.setAttribute('opacity',0));
+  svg.addEventListener('pointerup',e=>{
+    if(!start)return;const end=snap(e),s0=start;start=null;
+    if(end[0]===s0[0]&&end[1]===s0[1]){prev.setAttribute('x2',prev.getAttribute('x1'));prev.setAttribute('y2',prev.getAttribute('y1'));return;}
+    pushUndo();S.drw.lines.push([s0[0],s0[1],end[0],end[1],S.pen]);render();
+  });
+}
+function setDraw(on){
+  S.drawOn=on;$('drawbar').classList.toggle('show',on);$('drawBtn').classList.toggle('on',on);
+  document.querySelector('.card.iso').classList.toggle('drawing',on);
+  if(on)S.show.iso=true;
+}
+function renderSwatches(){
+  const box=$('swatches');box.innerHTML='';
+  PENS.forEach(c=>{const b=document.createElement('button');b.className='sw'+(c===S.pen?' on':'');b.style.background=c;b.title='Боја';b.onclick=()=>{S.pen=c;renderSwatches();render();};box.appendChild(b);});
+}
+
+/* ---------- приказ ---------- */
+const DRAW={iso:drawIso,plan:drawPlan,front:drawFront,side:drawSide};
+function render(){
+  for(const k in DRAW){
+    const box=$('v-'+k);box.innerHTML='';
+    if(S.show[k])box.appendChild(DRAW[k]());
+    else{
+      if(k==='iso')drawIso(); // за бројот коцки
+      const d=document.createElement('div');d.className='hidden-box';
+      d.innerHTML='<div><b>Скриено</b><br><small>кликни за да се прикаже '+NAMES[k]+'</small></div>';
+      d.onclick=()=>{S.show[k]=true;render();};box.appendChild(d);
+    }
+  }
+  if(!S.show.iso)$('count').textContent='';
+  document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',S.show[b.dataset.t]));
+  renderGrid();save();
+}
+function renderGrid(){
+  const g=$('grid');g.innerHTML='';g.style.gridTemplateColumns=`repeat(${S.n},1fr)`;
+  for(let x=0;x<S.n;x++)for(let y=0;y<S.n;y++){
+    const d=document.createElement('div'),v=S.h[x][y];
+    d.textContent=v||'';if(v)d.className='f';
+    d.onclick=e=>{change(x,y,e.shiftKey?-1:1);};
+    d.oncontextmenu=e=>{e.preventDefault();change(x,y,-1);};
+    g.appendChild(d);
+  }
+}
+function change(x,y,d){S.h[x][y]=Math.max(0,Math.min(S.maxH,S.h[x][y]+d));render();}
+
+/* ---------- случајна фигура (поврзана) ---------- */
+function random(){
+  const n=S.n,want=+$('cnt').value;
+  for(let tries=0;tries<200;tries++){
+    const h=empty(n);
+    const target=want||(5+Math.floor(Math.random()*Math.min(n*n*S.maxH*0.3,8)));
+    const fp=Math.min(n*n,Math.max(2,Math.round(target*(0.45+Math.random()*0.3))));
+    let cells=[[Math.floor(Math.random()*n),Math.floor(Math.random()*n)]];h[cells[0][0]][cells[0][1]]=1;
+    while(cells.length<fp){
+      const [a,b]=cells[Math.floor(Math.random()*cells.length)];
+      const nb=[[a+1,b],[a-1,b],[a,b+1],[a,b-1]][Math.floor(Math.random()*4)];
+      if(nb[0]<0||nb[1]<0||nb[0]>=n||nb[1]>=n||h[nb[0]][nb[1]])continue;
+      h[nb[0]][nb[1]]=1;cells.push(nb);
+    }
+    let total=cells.length,guard=0;
+    if(total>target)continue;
+    while(total<target&&guard++<500){const [a,b]=cells[Math.floor(Math.random()*cells.length)];if(h[a][b]<S.maxH){h[a][b]++;total++;}}
+    if(total===target){S.h=h;return;}
+  }
+}
+function rotate(){const n=S.n,o=S.h,r=empty(n);for(let i=0;i<n;i++)for(let j=0;j<n;j++)r[i][j]=o[n-1-j][i];S.h=r;}
+
+/* ---------- копчиња ---------- */
+document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.show[b.dataset.t]=!S.show[b.dataset.t];render();});
+$('showAll').onclick=()=>{for(const k in S.show)S.show[k]=true;render();};
+$('hideViews').onclick=()=>{S.show.plan=S.show.front=S.show.side=false;S.show.iso=true;render();};
+$('quiz').onclick=()=>{S.show.iso=false;S.show.plan=S.show.front=S.show.side=true;setEditor(false);render();};
+$('rnd').onclick=()=>{random();render();};
+$('rot').onclick=()=>{rotate();render();};
+function setEditor(on){$('editor').classList.toggle('hide',!on);$('edToggle').classList.toggle('on',on);document.querySelector('main').style.gridTemplateColumns=on?'':'1fr';}
+$('edToggle').onclick=()=>setEditor($('editor').classList.contains('hide'));
+$('clear').onclick=()=>{S.h=empty(S.n);render();};
+$('print').onclick=()=>window.print();
+$('size').onchange=e=>{const n=+e.target.value,o=S.h;S.n=n;S.h=empty(n);for(let i=0;i<n;i++)for(let j=0;j<n;j++)if(o[i]&&o[i][j]!==undefined)S.h[i][j]=o[i][j];render();};
+$('maxh').onchange=e=>{S.maxH=+e.target.value;S.h=S.h.map(r=>r.map(v=>Math.min(v,S.maxH)));render();};
+['arrows','nums','dots','sq'].forEach(k=>$(k).onchange=e=>{S[k]=e.target.checked;render();});
+$('col').onchange=e=>{S.col=e.target.value;render();};
+$('drawBtn').onclick=()=>{setDraw(!S.drawOn);render();};
+$('drawTask').onclick=()=>{S.hideCubes=true;$('hideCubes').checked=true;S.show.plan=S.show.front=S.show.side=true;setEditor(false);setDraw(true);render();};
+document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{S.tool=b.dataset.tool;
+  if(S.tool==='cube'){if(S.hideCubes){S.hideCubes=false;$('hideCubes').checked=false;render();}flash('Клик на хартијата или на коцка додава коцка, десен клик (или Shift + клик) ја одзема. Проекциите се менуваат веднаш.');}document.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('on',x===b));});
+$('undo').onclick=()=>{if(S.undo.length){S.drw=JSON.parse(S.undo.pop());render();}};
+$('wipe').onclick=()=>{if(!S.drw.lines.length&&!Object.keys(S.drw.fills).length)return;pushUndo();S.drw={lines:[],fills:{}};render();};
+$('hideCubes').onchange=e=>{S.hideCubes=e.target.checked;render();};
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();$('undo').click();}});
+renderSwatches();
+
+if(!load())preset();
+$('size').value=S.n;$('maxh').value=S.maxH;
+render();
+</script>
+</body>
+</html>
