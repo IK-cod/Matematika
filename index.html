@@ -1046,6 +1046,19 @@
       `).join('');
     }
 
+    // Ако линкот е PDF од data/ (на пр. data/pdf/ime.pdf), се отвора во pdf.html
+    // каде што документот може само да се гледа, без копче за симнување.
+    function resolveLink(item) {
+      let link = String(item.link || '').trim();
+      if (!link) return '';
+      // Ако во data/pdf/ е заборавено .pdf на крајот, додади го
+      if (/^(\.\/)?data\/pdf\//i.test(link) && !/\.pdf$/i.test(link)) link += '.pdf';
+      const isLocalPdf = /\.pdf$/i.test(link) && !/^[a-z]+:/i.test(link) && !link.startsWith('//');
+      if (!isLocalPdf) return link;
+      const viewer = `pdf.html?f=${encodeURIComponent(link)}&t=${encodeURIComponent(String(item.title || ''))}`;
+      return new URL(viewer, location.href).href;
+    }
+
     function renderTable() {
       const lessons = lessonsData[selectedCategory]?.[selectedGrade] || [];
       const query = searchInput.value.trim().toLowerCase();
@@ -1065,22 +1078,25 @@
         return;
       }
 
-      const rows = filtered.map(item => `
+      const rows = filtered.map(item => {
+        const link = resolveLink(item);
+        return `
         <tr>
           <td class="index-cell">${item.no}</td>
           <td class="title-cell">${item.title}</td>
           <td>
-            ${item.link
-              ? `<a class="link-btn" href="${item.link}" target="_blank" rel="noopener noreferrer">Отвори</a>`
+            ${link
+              ? `<a class="link-btn" href="${link}" target="_blank" rel="noopener noreferrer">Отвори</a>`
               : `<span class="link-btn disabled">Нема линк</span>`}
           </td>
           <td>
-            ${item.link
-              ? `<button class="qr-btn" onclick="openQrModal('${encodeURIComponent(item.link)}')"><span class="qr-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4z"></path><path d="M14 4h6v6h-6z"></path><path d="M4 14h6v6H4z"></path><path d="M14 14h2"></path><path d="M18 14h2v2"></path><path d="M14 18h2v2"></path><path d="M18 18h2"></path></svg></span>QR код</button>`
+            ${link
+              ? `<button class="qr-btn" onclick="openQrModal('${encodeURIComponent(link)}')"><span class="qr-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4z"></path><path d="M14 4h6v6h-6z"></path><path d="M4 14h6v6H4z"></path><path d="M14 14h2"></path><path d="M18 14h2v2"></path><path d="M14 18h2v2"></path><path d="M18 18h2"></path></svg></span>QR код</button>`
               : `<span class="qr-btn disabled">Нема QR</span>`}
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
 
       contentArea.innerHTML = `
         <div class="table-wrap">
