@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="mk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Преглед на документ</title>
+<style>
+  :root { --bg:#eef1f6; --card:#fff; --ink:#22292f; --muted:#667085; --accent:#4f46e5; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
+  }
+  header {
+    position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    padding:12px 16px; background:rgba(255,255,255,.92); backdrop-filter:blur(6px);
+    border-bottom:1px solid #e2e8f0;
+  }
+  header h1 { font-size:17px; margin:0; flex:1; min-width:160px; }
+  header .tools { display:flex; gap:6px; align-items:center; }
+  header button {
+    border:1px solid #d5dbe6; background:#fff; border-radius:10px; padding:6px 12px;
+    font-size:15px; font-weight:600; cursor:pointer; color:var(--ink);
+  }
+  header button:hover { border-color:var(--accent); color:var(--accent); }
+  #zoomLabel { font-size:14px; color:var(--muted); min-width:48px; text-align:center; }
+  #pages { display:flex; flex-direction:column; align-items:center; gap:16px; padding:16px; }
+  .page { position:relative; background:#fff; box-shadow:0 2px 12px rgba(0,0,0,.08); border-radius:4px; max-width:100%; }
+  .page canvas { display:block; max-width:100%; height:auto; pointer-events:none; }
+  .page .shield { position:absolute; inset:0; }
+  #status { text-align:center; color:var(--muted); padding:40px 16px; }
+  @media print { body { display:none !important; } }
+</style>
+</head>
+<body oncontextmenu="return false">
+<header>
+  <h1 id="docTitle">Документ</h1>
+  <div class="tools">
+    <button id="zoomOut" aria-label="Намали">−</button>
+    <span id="zoomLabel">100%</span>
+    <button id="zoomIn" aria-label="Зголеми">+</button>
+  </div>
+</header>
+<div id="status">Се вчитува документот…</div>
+<div id="pages"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  // Употреба: pdf.html?f=data/ime-na-fajl.pdf&t=Наслов
+  const params = new URLSearchParams(location.search);
+  const file = params.get('f') || '';
+  const title = params.get('t') || '';
+  const statusEl = document.getElementById('status');
+  const pagesEl = document.getElementById('pages');
+  if (title) { document.getElementById('docTitle').textContent = title; document.title = title; }
+
+  // Блокирај Ctrl+S, Ctrl+P, Ctrl+C, Ctrl+U и влечење слики
+  document.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && ['s', 'p', 'c', 'u'].includes(k)) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+  document.addEventListener('dragstart', e => e.preventDefault());
+  window.addEventListener('beforeprint', () => { document.body.style.display = 'none'; });
+  window.addEventListener('afterprint', () => { document.body.style.display = ''; });
+
+  let pdfDoc = null;
+  let zoom = 1;
+  const zoomLabel = document.getElementById('zoomLabel');
+
+  async function renderAll() {
+    pagesEl.innerHTML = '';
+    const avail = Math.min(window.innerWidth - 32, 1000);
+    const dpr = window.devicePixelRatio || 1;
+    for (let n = 1; n <= pdfDoc.numPages; n++) {
+      const page = await pdfDoc.getPage(n);
+      const base = page.getViewport({ scale: 1 });
+      const cssScale = (avail / base.width) * zoom;
+      const vp = page.getViewport({ scale: cssScale * dpr });
+      const wrap = document.createElement('div');
+      wrap.className = 'page';
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.floor(vp.width);
+      canvas.height = Math.floor(vp.height);
+      canvas.style.width = Math.floor(vp.width / dpr) + 'px';
+      const shield = document.createElement('div');
+      shield.className = 'shield';
+      wrap.append(canvas, shield);
+      pagesEl.appendChild(wrap);
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+    }
+    zoomLabel.textContent = Math.round(zoom * 100) + '%';
+  }
+
+  document.getElementById('zoomIn').onclick = () => { zoom = Math.min(3, zoom + 0.25); renderAll(); };
+  document.getElementById('zoomOut').onclick = () => { zoom = Math.max(0.5, zoom - 0.25); renderAll(); };
+  let resizeTimer;
+  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => pdfDoc && renderAll(), 250); });
+
+  (async () => {
+    if (!file || !/\.pdf$/i.test(file) || /^[a-z]+:/i.test(file) || file.startsWith('//')) {
+      statusEl.textContent = 'Не е зададен документ.';
+      return;
+    }
+    try {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      pdfDoc = await pdfjsLib.getDocument({ url: file }).promise;
+      statusEl.remove();
+      await renderAll();
+    } catch (err) {
+      statusEl.textContent = 'Документот не можеше да се вчита.';
+    }
+  })();
+</script>
+</body>
+</html>
